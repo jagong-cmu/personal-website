@@ -21,11 +21,14 @@ build.
 
 `PRD.md` §9 is a list of prohibitions, not preferences, and the owner has rejected several
 designs for unrequested "improvement". Before changing anything visual, read §9. The short
-form: pure `#FFFFFF` background, system font stack only, **zero external requests** (no web
-fonts, no CDN, no `<link>`), at most three type sizes, no shadows/gradients/rounded
-panels/animation/dark mode, no phone number anywhere. The only two granted exceptions are
-the inline-SVG social icons and the circular headshot (the site's only non-zero
-`border-radius`). Make the change asked for and nothing else.
+form: pure `#FFFFFF` background, system font stack only (no Google Fonts), at most three
+type sizes, no shadows/gradients/coloured panels/animation/dark mode. The only two granted
+exceptions §9 names are the inline-SVG social icons and the circular headshot (the site's
+only non-zero `border-radius`).
+
+Two further prohibitions bind this preview as owner decisions rather than §9 text, so do not
+expect to find them there: **zero external requests** (no web fonts, no CDN, no `<link>`, no
+external CSS/JS) and no phone number anywhere. Make the change asked for and nothing else.
 
 ## Maintaining this file
 

@@ -38,19 +38,26 @@ Explicitly out of scope. Each was considered and declined.
 
 ## 4. Information architecture
 
+**The front door is a tabbed shell, not a long scroll.** One persistent header — name,
+one line, links — with a row of plain text tabs beneath it. Clicking a tab swaps the
+content area in place. Each tab is a real route so it can be linked and bookmarked.
+
 ```
-/                 Front door — headshot, name, one-line bio, About,
-                  Work Experience, featured Projects, Awards, social links
-/projects         Full curated project list
+/                 Front door shell. Opens on About.
+  /about          About — a short paragraph
+  /work           Work experience
+  /projects       Projects
+  /awards         Awards
 /journey          Era-chaptered photographic timeline  [noindexed]
-/blog             Post index
-/blog/[slug]      Individual post
+/blog             Post index → /blog/[slug]
 /admin            Authenticated content management  [noindexed, nofollow]
 ```
 
-**About** lives as a section on the front door rather than its own page — a separate About page would compete with the Journey for the same job, and the Journey does it better. It is a real paragraph with a voice, not a bio line.
+Only ONE section is on screen at a time. Nothing stacks. A visitor who wants work
+experience clicks Work and sees work experience on an otherwise empty page.
 
-**Featured projects** appear on the front door (3 items) linking through to the full `/projects` page. The front door must remain scannable; the complete list does not belong on it.
+Journey and Blog sit in the same tab row but are full destinations rather than panels,
+because they are long-form and scroll on their own.
 
 ## 5. Content model
 
@@ -127,13 +134,34 @@ Not yet purchased. `jonathangong.com` was available at $11.25/yr as of 2026-08-1
 
 ## 9. Visual direction
 
-**Editorial and warm** — the Julian Ng-Thow-Hing end of the reference spectrum rather than the David Chung end. Generous whitespace, typographic restraint, prose that reads like a magazine column. The reasoning is functional, not stylistic: this site carries a photographic Journey, and stark utilitarian minimalism fights photographs while editorial minimalism is built to hold them.
+**Plain. White. Empty.** This section was rewritten on 2026-08-19 after the owner reviewed
+three directions and rejected all three as "too cluttered, too fancy." The earlier
+"editorial and warm" specification was wrong and is void. The nearest reference is
+davidchung.io — the utilitarian one — not juliannth.com.
 
-- **Headshot on the front door.** Owner's decision.
-- **Dark/light toggle**, as a quiet corner control. Not a feature. No warmth slider.
-- **Motion: considered.** Scroll-triggered reveals as Journey eras enter the viewport, smooth page transitions, images that settle rather than pop. The standard: a visitor should feel the motion and never notice it.
+Hard rules, stated as prohibitions because that is how this direction fails:
 
-**Three distinct directions** will be built as mockups for side-by-side comparison before any production code is written. Taste is comparative — more is learned from rejecting two directions than from approving one in isolation.
+- **Background is pure white** (`#FFFFFF`). Not cream, not sand, not off-white, not grey.
+- **Typography is a plain system font stack.** No Google Fonts. No display face, no serif,
+  no variable-width tricks, no letterspaced small caps. One family, two or three sizes.
+- **Negative space is the design.** Generous margins and large gaps are the point; if a
+  screen looks sparse, it is correct. Do not fill space.
+- **No decoration.** No cards, no shadows, no gradients, no borders-as-styling, no
+  coloured panels, no badges, no signature motif.
+  - **Exception, owner's instruction 2026-08-19:** social links are monochrome inline-SVG
+    icons rather than the words "GitHub"/"LinkedIn"/"Email". Icons only for these three.
+  - **Exception, owner's instruction 2026-08-19:** the headshot is a circular crop, framed
+    on the head, and noticeably larger than a thumbnail. This is the one shaped element
+    on the site.
+- **Colour is black text on white**, plus grey for metadata. At most one restrained accent,
+  used for links only. No accent backgrounds.
+- **Motion is near-zero.** A plain instant tab switch is the default. Nothing animates in on
+  scroll. This supersedes decision 24.
+- **No theme toggle.** The site is white. Dark mode is dropped for now; this supersedes
+  decisions 13 and 26 and is trivially re-addable if the owner asks.
+
+The headshot appears in the front-door header as a **circle, cropped to the head**, at a
+size that reads as a portrait rather than an avatar. No border, no shadow, no filter.
 
 ## 10. Delivery plan
 
@@ -202,3 +230,6 @@ Deferred by owner. See §7.5.
 | 23 | Journey and blog in nav from day one | Structure visible; blog seeded with one real post |
 | 24 | Considered motion | Near-static undersells a photo timeline; showcase-tier reads as a template |
 | 25 | `/projects` own page; About on front door | Owner's decision; About would compete with the Journey |
+| 26 | ~~Light default, dark opt-in~~ **SUPERSEDED by 27** | Owner's decision, 2026-08-19. A portfolio should look the way its author intended on first load; dark stays available as an opt-in |
+| 27 | **Plain / white / empty, tabbed front door.** Supersedes 2, 13, 24, 25, 26 | Owner reviewed three directions on 2026-08-19 and rejected all three as too cluttered and too fancy. Requested a simplistic layout, plain typography, heavy negative space, pure white, and one section per tab instead of a stacked scroll. The reference is davidchung.io, not juliannth.com |
+| 28 | Social links as icons; headshot large and circular, head-framed | Owner's instruction 2026-08-19, reviewing plain-v1. Narrow, explicit exceptions to decision 27's no-icons / no-photo-treatment rules; everything else in 27 stands |
