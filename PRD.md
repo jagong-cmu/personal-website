@@ -2,7 +2,7 @@
 
 - **Project:** `jagong-cmu/personal-website` (public)
 - **Owner:** Jonathan Gong
-- **Status:** Visual direction approved (§9, decisions 27–29). The approved static preview
+- **Status:** Visual direction approved (§9, decisions 27–30). The approved static preview
   is landed at the repository root and deploys on Vercel for review; the Next.js build in
   §7 has not started. `README.md` covers the preview.
 - **Date:** 2026-08-18, last revised 2026-08-19
@@ -214,6 +214,8 @@ loosen the rule above — the launch is still stages 2–4 shipping together.
 
 ### 11.1 Journey shape — deliberately open
 The precise structure and visual treatment of the Journey is unsettled **on purpose**. It is the part of the site the owner cares most about, and prose is the wrong medium for deciding it. It will be built with defaults — era chapters, date ranges, work entries visually distinguished — and settled by reacting to a real screen. Expect revision here; it is planned for, not a risk.
+
+Two owner-scoped edits already made to the preview are waiting on that reaction, and neither is an oversight to correct: the Bizybear entry was removed from the Journey and deliberately kept on the front door's Work tab, and the Summer 2026 era was merged from three entries into one, which necessarily costs that era the work/personal type distinction — an entry cannot be both.
 
 ### 11.2 Content required from owner
 Supplied 2026-08-19 and now living in the root static preview: work experience, the
