@@ -2,7 +2,7 @@
 
 - **Project:** `jagong-cmu/personal-website` (public)
 - **Owner:** Jonathan Gong
-- **Status:** Visual direction approved (§9, decisions 27–29). The approved static preview
+- **Status:** Visual direction approved (§9, decisions 27–30). The approved static preview
   is landed at the repository root and deploys on Vercel for review; the Next.js build in
   §7 has not started. `README.md` covers the preview.
 - **Date:** 2026-08-18, last revised 2026-08-19
@@ -215,6 +215,8 @@ loosen the rule above — the launch is still stages 2–4 shipping together.
 ### 11.1 Journey shape — deliberately open
 The precise structure and visual treatment of the Journey is unsettled **on purpose**. It is the part of the site the owner cares most about, and prose is the wrong medium for deciding it. It will be built with defaults — era chapters, date ranges, work entries visually distinguished — and settled by reacting to a real screen. Expect revision here; it is planned for, not a risk.
 
+Two owner-scoped edits already made to the preview are waiting on that reaction, and neither is an oversight to correct: the Bizybear entry was removed from the Journey and deliberately kept on the front door's Work tab, and the Summer 2026 era was merged from three entries into one, which necessarily costs that era the work/personal type distinction — an entry cannot be both.
+
 ### 11.2 Content required from owner
 Supplied 2026-08-19 and now living in the root static preview: work experience, the
 curated projects, awards, the three social accounts (GitHub, LinkedIn, email), and
@@ -269,3 +271,4 @@ Deferred by owner. See §7.5.
 | 27 | **Plain / white / empty, tabbed front door.** Supersedes 2, 13, 24, 25, 26 | Owner reviewed three directions on 2026-08-19 and rejected all three as too cluttered and too fancy. Requested a simplistic layout, plain typography, heavy negative space, pure white, and one section per tab instead of a stacked scroll. The reference is davidchung.io, not juliannth.com |
 | 28 | Social links as icons; headshot large and circular, head-framed | Owner's instruction 2026-08-19, reviewing plain-v1. Narrow, explicit exceptions to decision 27's no-icons / no-photo-treatment rules; everything else in 27 stands |
 | 29 | Social icons near-black (`#111111`); link accent unchanged | Owner's instruction 2026-08-19, reviewing plain-v2: "the social icon should be black." Scoped to the icons — body links stay accent-coloured and underlined, because links that look like text are a usability regression |
+| 30 | Work entries may link the company name, for confirmed companies only | Owner's instruction 2026-08-19. ScottyLabs and 996 Ventures are confirmed and linked; the remaining companies stay plain text until the owner confirms a URL, because a guessed domain is worse than no link. Styled as an ordinary body link — no icon, no external-link marker, no new colour |
