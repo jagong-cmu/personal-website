@@ -10,11 +10,14 @@ A recruiter-facing front door with personal depth behind it:
 
 | Route | Purpose |
 |---|---|
-| `/` | Front door — about, work experience, featured projects, awards, links |
-| `/projects` | Full curated project list |
-| `/journey` | Era-chaptered photographic timeline (excluded from search engines) |
-| `/blog` | Writing |
-| `/admin` | Authenticated content management |
+| `/` | Front door shell — opens on About |
+| `/#about` | About |
+| `/#work` | Work experience |
+| `/#projects` | Projects |
+| `/#awards` | Awards |
+| `/journey.html` | Photographic timeline (excluded from search engines) |
+| `/blog.html` | Writing |
+| `/admin` | Authenticated content management (not built yet) |
 
 See [`PRD.md`](./PRD.md) for the full product requirements and the reasoning behind
 every decision.
@@ -22,7 +25,7 @@ every decision.
 ## Current state: static preview (temporary)
 
 The `index.html`, `journey.html`, `blog.html`, and `headshot.jpg` files at the repository
-root are the **captain-approved static preview**, deployed on Vercel zero-config so the
+root are the **owner-approved static preview**, deployed on Vercel zero-config so the
 design can be reviewed on a real URL. They are hand-written HTML with an inline `<style>`
 block and no build step, no framework, and no dependencies — deliberately.
 

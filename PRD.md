@@ -103,7 +103,20 @@ The consequence worth stating plainly: because content is committed to git, the 
 ### 7.1 Stack
 Next.js (App Router) + MDX + Tailwind, deployed on Vercel. Chosen over Astro because the admin is a genuine application with authentication, uploads, and an editor, and splitting it into a second deployment would double maintenance for an imperceptible gain. Next on Vercel is also the owner's existing, familiar path.
 
-**Libraries, each with a reason:** Tailwind for the system; shadcn/ui for admin inputs and dialogs where hand-rolling is wasted effort; Motion for §9 animation; sharp for the image pipeline; MDX for content; a deliberate typeface pairing rather than system defaults. Nothing is included for its own sake — a site that looks visibly assembled from components is the outcome being avoided.
+**Libraries, each with a reason:** Tailwind for the system; sharp for the build-time image
+pipeline; MDX for content. That is the whole list for the public site.
+
+**No animation library.** §9 forbids motion, so nothing like Motion/Framer is included.
+
+**No web fonts and no typeface pairing.** §9 mandates a plain system font stack. This
+supersedes the earlier "deliberate typeface pairing" line, which belonged to the voided
+editorial direction.
+
+**shadcn/ui is permitted in the ADMIN ONLY** — `/admin` is private and authenticated, and
+§9 governs the public site's appearance, not a tool only the owner ever sees. It must not
+leak into any public route.
+
+Nothing is included for its own sake.
 
 ### 7.2 Storage
 **Images live in the repository.** Vercel Blob is unavailable — the account is at its ceiling. Storing images in git collapses the system to one login, one store, one backup, one location, and removes every third-party free tier that could be revoked or exhausted.
