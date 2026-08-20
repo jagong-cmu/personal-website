@@ -72,7 +72,17 @@ Company, role, date range, and two to three lines written as outcomes with concr
 Name, one-line summary, longer description, tech, links (repo, live). The set is now curated and settled — the five projects carried by the root static preview (§11.2) — which supersedes the earlier guess at which public repositories would be featured.
 
 ### 5.3 Awards — file-edited
-Own section on the front door. Three to four entries: name, granting body, year.
+Own section, one tab. Each entry: name, granting body, year.
+
+**Exactly ONE award is confirmed** — 1st Place, Y Combinator × Moss Conversational AI
+Hackathon (June 2026, 200+ competitors, sponsored by Unsiloed AI). The owner believed there
+were three or four; all three résumé versions were read in full on 2026-08-18 and contain
+only this one. The earlier "three to four entries" figure recorded that belief and was
+wrong; it is corrected here rather than left as a requirement the site cannot meet.
+
+The section is built to hold three or four gracefully and renders one deliberately — no
+padding, no placeholder, no "more coming". If the owner supplies more they drop in with no
+layout change (open item, §11.2).
 
 ### 5.4 Blog — admin-managed
 Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. Ships with **one real post** at launch — an empty blog reads as abandoned, a single genuine post reads as a beginning.
@@ -211,8 +221,9 @@ curated projects, awards, the three social accounts (GitHub, LinkedIn, email), a
 `headshot.jpg`. It is real content, not placeholder copy, and it is what the Next.js
 build ports into MDX.
 
-Still open: the preview carries **one** award, where §5.3 and decision 18 anticipate
-three to four. Either more awards are supplied or §5.3 changes.
+Still open: further awards, if the owner has any beyond the one confirmed in §5.3. The
+awards section holds three or four without redesign, so any the owner supplies drop in
+with no layout change.
 
 ### 11.3 Domain
 Deferred by owner. See §7.5.
@@ -246,7 +257,7 @@ Deferred by owner. See §7.5.
 | 15 | Next.js App Router + MDX + Tailwind | Admin is a real app; existing familiarity; one deployment |
 | 16 | GitHub OAuth, single account | Same identity that owns the repo; no stored credential |
 | 17 | *(open — Journey shape, §11.1)* | Settled visually, not in prose |
-| 18 | 3–4 awards → own section; no PDF; headshot yes; GPS stripped always | Owner's decisions except GPS, which is non-negotiable |
+| 18 | Awards → own section; no PDF; headshot yes; GPS stripped always | Owner's decisions except GPS, which is non-negotiable. The original "3–4 awards" figure was the owner's recollection; the résumés contain exactly one, so §5.3 now records one confirmed and the section holds more without redesign |
 | 19 | Ship fast, full structure | See §10 assumption |
 | 20 | Single deployment including admin | Owner override of a two-drop recommendation |
 | 21 | Real content, projects seeded from repos | Owner's choice over placeholders |
