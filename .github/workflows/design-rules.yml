@@ -1,0 +1,18 @@
+name: Design rules
+
+# The site is plain, white, and self-contained by design. These constraints are easy to
+# erode one edit at a time, so they are checked on every push and pull request.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  design-rules:
+    name: Check design rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check design rules
+        run: python3 .github/scripts/check-design-rules.py

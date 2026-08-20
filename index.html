@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jonathan Gong</title>
+<script>document.documentElement.className = "js";</script>
+<style>
+:root {
+  --ink: #111111;
+  --grey: #6b6b6b;
+  --link: #0645ad;
+  --icon: #111111;
+  --placeholder: #f0f0f0;
+  --measure: 720px;
+  --t-meta: 15px;
+  --t-body: 17px;
+  --t-lead: 19px;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+body {
+  margin: 0;
+  background: #FFFFFF;
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: var(--t-body);
+  line-height: 1.6;
+  font-weight: 400;
+  overflow-wrap: break-word;
+}
+.page {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 96px 64px 160px;
+}
+a { color: var(--link); text-decoration: underline; }
+a:hover { text-decoration: underline; }
+p { margin: 0; }
+ul { margin: 0; padding: 0 0 0 20px; }
+li { margin: 0 0 8px; }
+li:last-child { margin-bottom: 0; }
+
+/* Header */
+.masthead { display: flex; gap: 20px; align-items: flex-start; }
+.masthead img {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex: 0 0 auto;
+}
+.identity { min-width: 0; }
+.name { font-size: var(--t-lead); font-weight: 600; margin: 0 0 6px; line-height: 1.35; }
+.oneline { margin: 0 0 12px; }
+.links { display: flex; align-items: center; margin: -10px 0 -10px -12px; }
+.links a {
+  color: var(--icon);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  text-decoration: none;
+}
+.links a:hover { color: var(--link); }
+.links svg { display: block; }
+
+/* Tabs */
+.tabs {
+  margin: 40px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+}
+.tabs a {
+  color: var(--grey);
+  text-decoration: none;
+  padding: 2px 0;
+}
+.tabs a:hover { color: var(--ink); }
+.tabs a[aria-current] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Content */
+main { margin-top: 64px; }
+html.js .panel { display: none; }
+html.js .panel.is-active { display: block; }
+.panel > * + * { margin-top: 56px; }
+
+.entry > * + * { margin-top: 0; }
+.entry-title { font-weight: 600; margin: 0; }
+.entry-meta { color: var(--grey); font-size: var(--t-meta); margin: 2px 0 0; }
+.entry-body { margin-top: 16px; }
+.entry-links { font-size: var(--t-meta); margin-top: 12px; }
+.note { color: var(--grey); }
+
+/* Journey */
+.era { }
+.era + .era { margin-top: 96px; }
+.era-title { font-size: var(--t-lead); font-weight: 600; margin: 0 0 4px; line-height: 1.35; }
+.era-range { color: var(--grey); font-size: var(--t-meta); margin: 0 0 40px; }
+.jentry + .jentry { margin-top: 56px; }
+.jentry.work { padding-left: 32px; }
+.jlabel { color: var(--grey); font-size: var(--t-meta); margin: 0 0 4px; }
+.jtitle { font-size: var(--t-body); font-weight: 600; margin: 0; line-height: 1.6; }
+.jmeta { color: var(--grey); font-size: var(--t-meta); margin: 2px 0 0; }
+.jtext { margin-top: 12px; }
+.photos { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 12px; }
+.ph { background: var(--placeholder); flex: 0 0 auto; max-width: 100%; }
+.ph-3x2 { width: 100%; aspect-ratio: 3 / 2; }
+.ph-2x3 { width: calc(50% - 6px); aspect-ratio: 2 / 3; }
+.ph-1x1 { width: calc(50% - 6px); aspect-ratio: 1 / 1; }
+.ph-4x3 { width: calc(50% - 6px); aspect-ratio: 4 / 3; }
+
+@media (max-width: 560px) {
+  .page { padding: 48px 20px 120px; }
+  .masthead img { width: 104px; height: 104px; }
+  .masthead { gap: 16px; }
+  main { margin-top: 48px; }
+  .tabs { gap: 8px 16px; font-size: var(--t-meta); }
+  .jentry.work { padding-left: 16px; }
+  .era + .era { margin-top: 72px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="masthead">
+      <img src="headshot.jpg" alt="Jonathan Gong">
+      <div class="identity">
+        <h1 class="name">Jonathan Gong</h1>
+        <p class="oneline">Student at Carnegie Mellon. I build AI products and take them to market.</p>
+        <p class="links">
+          <a href="https://github.com/jagong-cmu" aria-label="GitHub"><svg width="19" height="19" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
+          <a href="https://linkedin.com/in/gong-jonathan" aria-label="LinkedIn"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg></a>
+          <a href="mailto:jagong@andrew.cmu.edu" aria-label="Email"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" aria-hidden="true" focusable="false"><path d="M1 4h22v16H1V4zm2 2.4V18h18V6.4l-9 6.9-9-6.9zM19.6 6H4.4l7.6 5.8L19.6 6z"/></svg></a>
+        </p>
+      </div>
+    </div>
+
+    <nav class="tabs" aria-label="Sections">
+      <a href="#about" data-tab="about">About</a>
+      <a href="#work" data-tab="work">Work</a>
+      <a href="#projects" data-tab="projects">Projects</a>
+      <a href="#awards" data-tab="awards">Awards</a>
+      <a href="journey.html">Journey</a>
+      <a href="blog.html">Blog</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <section class="panel" data-panel="about" aria-label="About">
+      <p>I&rsquo;m a student at Carnegie Mellon studying Information Systems and Artificial Intelligence. I build products and I take them to market: I co-founded a venture studio as its CTO, scaled an edtech product from 1,000 to over 60,000 users, and won the Y&nbsp;Combinator &times; Moss Conversational AI Hackathon against more than 200 teams. Most of my work sits where AI systems meet the people who actually have to use them.</p>
+      <p class="note">Carnegie Mellon University &mdash; B.S. Information Systems, double major in Artificial Intelligence. August 2025 &ndash; May 2029.</p>
+    </section>
+
+    <section class="panel" data-panel="work" aria-label="Work">
+
+      <article class="entry">
+        <p class="entry-title">996 Ventures &mdash; Co-Founder and CTO</p>
+        <p class="entry-meta">Pittsburgh, PA &middot; May 2026 &ndash; Present</p>
+        <ul class="entry-body">
+          <li>Built a full-stack venture studio site in React, TypeScript, and TanStack Start (SSR) on Cloudflare Workers</li>
+          <li>Engineered a serverless submission pipeline with TanStack server functions, Zod validation, and the Google Sheets API</li>
+          <li>Crafted a motion-driven UI (Motion, Radix, Tailwind) with a custom intro loader and geometric component system</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <p class="entry-title">Corgi &mdash; AI Engineer</p>
+        <p class="entry-meta">San Francisco, CA &middot; July 2026 &ndash; August 2026</p>
+        <ul class="entry-body">
+          <li>Developed an internal MCP server enabling company-wide tool integrations across teams</li>
+          <li>Built a React Native iOS app for Corgi Cafe, including order integrations with Square</li>
+          <li>Built a company-internal chatbot to streamline employee support across existing integrations</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <p class="entry-title">ScottyLabs &mdash; Head of Go-To-Market</p>
+        <p class="entry-meta">Pittsburgh, PA &middot; January 2026 &ndash; Present</p>
+        <ul class="entry-body">
+          <li>Synthesized research from 50+ users to drive 5+ product design iterations across software projects</li>
+          <li>Aligned cross-functional teams of engineers, designers, and marketers around shared OKRs each sprint</li>
+          <li>Led launch of 3 projects, driving 1,000+ signups through organized marketing funnels</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <p class="entry-title">Scurry &mdash; AI Consultant</p>
+        <p class="entry-meta">Remote &middot; June 2026 &ndash; July 2026</p>
+        <ul class="entry-body">
+          <li>Developed internal tooling to streamline client onboarding, cutting turnaround time by 80%</li>
+          <li>Collaborated directly with clients to translate business goals into automated AI systems</li>
+          <li>Designed and implemented workflow automations within client HubSpot CRMs</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <p class="entry-title">Bizybear &mdash; VP of Communications</p>
+        <p class="entry-meta">Rancho Cucamonga, CA &middot; September 2025 &ndash; February 2026</p>
+        <ul class="entry-body">
+          <li>Scaled user signups from 1,000 to 60,000+ through guerilla and social media marketing</li>
+          <li>Translated user pain points into developer feature requests, reducing reported bugs by 30%</li>
+          <li>Built a company ambassador program, selecting 20+ candidates through a competitive process</li>
+        </ul>
+      </article>
+
+    </section>
+
+    <section class="panel" data-panel="projects" aria-label="Projects">
+
+      <article class="entry">
+        <p class="entry-title">ManuAI</p>
+        <p class="entry-meta">June 2026 &middot; Python, Swift, JavaScript, LiveKit</p>
+        <ul class="entry-body">
+          <li>Won 1st place against 200+ competitors at the Y Combinator &times; Moss Conversational AI Hackathon, sponsored by Unsiloed AI (YC F25)</li>
+          <li>Offline multimodal factory voice assistant letting operators verbally query manufacturing issues</li>
+          <li>Local RAG pipeline using vector embeddings to retrieve over SOPs, OEMs, and chat logs</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <p class="entry-title">PatientScope AI</p>
+        <p class="entry-meta">May 2026 &middot; TypeScript, Python, PostgreSQL, FastAPI, Vite, React</p>
+        <ul class="entry-body">
+          <li>Clinical decision-support platform for ICU discharges built on the MIMIC-IV dataset</li>
+          <li>Random Forest model predicting patient risk scores from demographic, vital, and lab features</li>
+          <li>Chained CTEs in PostgreSQL reconstructing and cleaning raw EHR cohorts</li>
+          <li>Split-hosting architecture: static frontend, FastAPI + Postgres behind an nginx reverse proxy with TLS</li>
+        </ul>
+        <p class="entry-links"><a href="https://github.com/jagong-cmu/patientscopeai">Repository</a></p>
+      </article>
+
+      <article class="entry">
+        <p class="entry-title">Chalk</p>
+        <p class="entry-meta">June 2026 &middot; TypeScript, React, Python, LiveKit, PostgreSQL</p>
+        <ul class="entry-body">
+          <li>Interactive AI voice tutor that draws synced whiteboard animations from personalized uploads</li>
+          <li>Designed a JSON format for the AI to describe drawings, which a separate renderer animates on screen</li>
+          <li>RAG pipeline (extract, chunk, embed, retrieve) grounding responses in uploaded course material</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <p class="entry-title">Poker Bot</p>
+        <p class="entry-meta">March 2026 &middot; Python, NumPy</p>
+        <ul class="entry-body">
+          <li>Heads-up poker agent for a 27-card modified Hold&rsquo;em tournament</li>
+          <li>Real-time opponent-modeling layer computing 15+ analytics to influence bot heuristics</li>
+          <li>Pure-Python hand evaluator with tiered ranking and a NumPy Monte Carlo equity engine running 180 simulations per decision</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <p class="entry-title">C0 Virtual Machine</p>
+        <p class="entry-meta">April 2025 &middot; C</p>
+        <ul class="entry-body">
+          <li>Bytecode interpreter for the C0 virtual machine over a stack and heap model</li>
+          <li>Garbage collector managing heap-allocated memory during execution</li>
+          <li>Native function call support bridging interpreted bytecode to library-level operations</li>
+        </ul>
+      </article>
+
+    </section>
+
+    <section class="panel" data-panel="awards" aria-label="Awards">
+      <article class="entry">
+        <p class="entry-title">1st Place &mdash; Y Combinator &times; Moss Conversational AI Hackathon</p>
+        <p class="entry-meta">June 2026 &middot; Sponsored by Unsiloed AI (YC F25)</p>
+        <p class="entry-body">Won against 200+ competitors with ManuAI, an offline multimodal voice assistant for factory operators.</p>
+      </article>
+    </section>
+
+  </main>
+
+</div>
+
+<script>
+(function () {
+  var TABS = ["about", "work", "projects", "awards"];
+  var panels = document.querySelectorAll("[data-panel]");
+  var links = document.querySelectorAll("[data-tab]");
+
+  function current() {
+    var h = (location.hash || "").replace(/^#/, "");
+    return TABS.indexOf(h) === -1 ? "about" : h;
+  }
+
+  function render() {
+    var name = current();
+    for (var i = 0; i < panels.length; i++) {
+      var on = panels[i].getAttribute("data-panel") === name;
+      panels[i].classList.toggle("is-active", on);
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (links[j].getAttribute("data-tab") === name) {
+        links[j].setAttribute("aria-current", "page");
+      } else {
+        links[j].removeAttribute("aria-current");
+      }
+    }
+    document.title = name === "about"
+      ? "Jonathan Gong"
+      : "Jonathan Gong — " + name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  window.addEventListener("hashchange", render);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,9 +1,11 @@
 # Jonathan Gong — Personal Website PRD
 
-- **Project:** `jagong-cmu/personal-website` (public, empty at time of writing)
+- **Project:** `jagong-cmu/personal-website` (public)
 - **Owner:** Jonathan Gong
-- **Status:** Awaiting sign-off. No code written yet.
-- **Date:** 2026-08-18
+- **Status:** Visual direction approved (§9, decisions 27–29). The approved static preview
+  is landed at the repository root and deploys on Vercel for review; the Next.js build in
+  §7 has not started. `README.md` covers the preview.
+- **Date:** 2026-08-18, last revised 2026-08-19
 - **Source:** Derived from a four-round requirements interview. Every decision below traces to the log in §13.
 
 ---
@@ -38,19 +40,26 @@ Explicitly out of scope. Each was considered and declined.
 
 ## 4. Information architecture
 
+**The front door is a tabbed shell, not a long scroll.** One persistent header — name,
+one line, links — with a row of plain text tabs beneath it. Clicking a tab swaps the
+content area in place. Each tab is a real route so it can be linked and bookmarked.
+
 ```
-/                 Front door — headshot, name, one-line bio, About,
-                  Work Experience, featured Projects, Awards, social links
-/projects         Full curated project list
+/                 Front door shell. Opens on About.
+  /about          About — a short paragraph
+  /work           Work experience
+  /projects       Projects
+  /awards         Awards
 /journey          Era-chaptered photographic timeline  [noindexed]
-/blog             Post index
-/blog/[slug]      Individual post
+/blog             Post index → /blog/[slug]
 /admin            Authenticated content management  [noindexed, nofollow]
 ```
 
-**About** lives as a section on the front door rather than its own page — a separate About page would compete with the Journey for the same job, and the Journey does it better. It is a real paragraph with a voice, not a bio line.
+Only ONE section is on screen at a time. Nothing stacks. A visitor who wants work
+experience clicks Work and sees work experience on an otherwise empty page.
 
-**Featured projects** appear on the front door (3 items) linking through to the full `/projects` page. The front door must remain scannable; the complete list does not belong on it.
+Journey and Blog sit in the same tab row but are full destinations rather than panels,
+because they are long-form and scroll on their own.
 
 ## 5. Content model
 
@@ -60,10 +69,20 @@ All content is MDX or structured data files committed to the repository. There i
 Company, role, date range, and two to three lines written as outcomes with concrete numbers wherever they exist. Terse listings undersell; metrics are what make this section work.
 
 ### 5.2 Projects — file-edited, hand-curated
-Name, one-line summary, longer description, tech, links (repo, live). Seeded from real repositories: `patientscopeai`, `transcript-analyzer`, `corgihackathon`, `icu-insights-hub`, `ai-job-search`, plus any not represented publicly.
+Name, one-line summary, longer description, tech, links (repo, live). The set is now curated and settled — the five projects carried by the root static preview (§11.2) — which supersedes the earlier guess at which public repositories would be featured.
 
 ### 5.3 Awards — file-edited
-Own section on the front door. Three to four entries: name, granting body, year.
+Own section, one tab. Each entry: name, granting body, year.
+
+**Exactly ONE award is confirmed** — 1st Place, Y Combinator × Moss Conversational AI
+Hackathon (June 2026, 200+ competitors, sponsored by Unsiloed AI). The owner believed there
+were three or four; all three résumé versions were read in full on 2026-08-18 and contain
+only this one. The earlier "three to four entries" figure recorded that belief and was
+wrong; it is corrected here rather than left as a requirement the site cannot meet.
+
+The section is built to hold three or four gracefully and renders one deliberately — no
+padding, no placeholder, no "more coming". If the owner supplies more they drop in with no
+layout change (open item, §11.2).
 
 ### 5.4 Blog — admin-managed
 Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. Ships with **one real post** at launch — an empty blog reads as abandoned, a single genuine post reads as a beginning.
@@ -96,7 +115,20 @@ The consequence worth stating plainly: because content is committed to git, the 
 ### 7.1 Stack
 Next.js (App Router) + MDX + Tailwind, deployed on Vercel. Chosen over Astro because the admin is a genuine application with authentication, uploads, and an editor, and splitting it into a second deployment would double maintenance for an imperceptible gain. Next on Vercel is also the owner's existing, familiar path.
 
-**Libraries, each with a reason:** Tailwind for the system; shadcn/ui for admin inputs and dialogs where hand-rolling is wasted effort; Motion for §9 animation; sharp for the image pipeline; MDX for content; a deliberate typeface pairing rather than system defaults. Nothing is included for its own sake — a site that looks visibly assembled from components is the outcome being avoided.
+**Libraries, each with a reason:** Tailwind for the system; sharp for the build-time image
+pipeline; MDX for content. That is the whole list for the public site.
+
+**No animation library.** §9 forbids motion, so nothing like Motion/Framer is included.
+
+**No web fonts and no typeface pairing.** §9 mandates a plain system font stack. This
+supersedes the earlier "deliberate typeface pairing" line, which belonged to the voided
+editorial direction.
+
+**shadcn/ui is permitted in the ADMIN ONLY** — `/admin` is private and authenticated, and
+§9 governs the public site's appearance, not a tool only the owner ever sees. It must not
+leak into any public route.
+
+Nothing is included for its own sake.
 
 ### 7.2 Storage
 **Images live in the repository.** Vercel Blob is unavailable — the account is at its ceiling. Storing images in git collapses the system to one login, one store, one backup, one location, and removes every third-party free tier that could be revoked or exhausted.
@@ -127,13 +159,38 @@ Not yet purchased. `jonathangong.com` was available at $11.25/yr as of 2026-08-1
 
 ## 9. Visual direction
 
-**Editorial and warm** — the Julian Ng-Thow-Hing end of the reference spectrum rather than the David Chung end. Generous whitespace, typographic restraint, prose that reads like a magazine column. The reasoning is functional, not stylistic: this site carries a photographic Journey, and stark utilitarian minimalism fights photographs while editorial minimalism is built to hold them.
+**Plain. White. Empty.** This section was rewritten on 2026-08-19 after the owner reviewed
+three directions and rejected all three as "too cluttered, too fancy." The earlier
+"editorial and warm" specification was wrong and is void. The nearest reference is
+davidchung.io — the utilitarian one — not juliannth.com.
 
-- **Headshot on the front door.** Owner's decision.
-- **Dark/light toggle**, as a quiet corner control. Not a feature. No warmth slider.
-- **Motion: considered.** Scroll-triggered reveals as Journey eras enter the viewport, smooth page transitions, images that settle rather than pop. The standard: a visitor should feel the motion and never notice it.
+Hard rules, stated as prohibitions because that is how this direction fails:
 
-**Three distinct directions** will be built as mockups for side-by-side comparison before any production code is written. Taste is comparative — more is learned from rejecting two directions than from approving one in isolation.
+- **Background is pure white** (`#FFFFFF`). Not cream, not sand, not off-white, not grey.
+- **Typography is a plain system font stack.** No Google Fonts. No display face, no serif,
+  no variable-width tricks, no letterspaced small caps. One family, two or three sizes.
+- **Negative space is the design.** Generous margins and large gaps are the point; if a
+  screen looks sparse, it is correct. Do not fill space.
+- **No decoration.** No cards, no shadows, no gradients, no borders-as-styling, no
+  coloured panels, no badges, no signature motif.
+  - **Exception, owner's instruction 2026-08-19:** social links are monochrome inline-SVG
+    icons rather than the words "GitHub"/"LinkedIn"/"Email". Icons only for these three.
+  - **Exception, owner's instruction 2026-08-19:** the headshot is a circular crop, framed
+    on the head, and noticeably larger than a thumbnail. This is the one shaped element
+    on the site.
+- **Colour is black text on white**, plus grey for metadata. At most one restrained accent,
+  used for links only. No accent backgrounds.
+  - **Exception, owner's instruction 2026-08-19:** the three social icons are near-black
+    (`#111111`), not accent-coloured. The accent itself is untouched — body links stay
+    visibly link-coloured. Do not "unify" the two: links that read as plain text are a
+    usability regression, not a simplification.
+- **Motion is near-zero.** A plain instant tab switch is the default. Nothing animates in on
+  scroll. This supersedes decision 24.
+- **No theme toggle.** The site is white. Dark mode is dropped for now; this supersedes
+  decisions 13 and 26 and is trivially re-addable if the owner asks.
+
+The headshot appears in the front-door header as a **circle, cropped to the head**, at a
+size that reads as a portrait rather than an avatar. No border, no shadow, no filter.
 
 ## 10. Delivery plan
 
@@ -146,6 +203,11 @@ Not yet purchased. `jonathangong.com` was available at $11.25/yr as of 2026-08-1
 | 3 | Admin built: GitHub auth, editor, image pipeline, commit layer | Working end to end |
 | 4 | Real content in, one blog post written, domain connected | Launch |
 
+Stage 1 closed on 2026-08-19: the owner approved the plain/white/empty direction after
+four review rounds, and §9 is the result. The approved static preview now deploys on
+Vercel as a **review** URL so that design can be checked on a real screen. That does not
+loosen the rule above — the launch is still stages 2–4 shipping together.
+
 **Assumption carried forward, flagged for overrule:** "live as soon as possible" is satisfied by seeing mockups within a day or two, *not* by an early deployment. Under this reading nothing is lost but an early URL that would not have been shared anyway. If a deployed public site is wanted before the admin exists, this reverts to two drops and stages 2 and 3 ship separately.
 
 ## 11. Open items
@@ -154,13 +216,14 @@ Not yet purchased. `jonathangong.com` was available at $11.25/yr as of 2026-08-1
 The precise structure and visual treatment of the Journey is unsettled **on purpose**. It is the part of the site the owner cares most about, and prose is the wrong medium for deciding it. It will be built with defaults — era chapters, date ranges, work entries visually distinguished — and settled by reacting to a real screen. Expect revision here; it is planned for, not a risk.
 
 ### 11.2 Content required from owner
-Blocks the real build, not the mockups.
+Supplied 2026-08-19 and now living in the root static preview: work experience, the
+curated projects, awards, the three social accounts (GitHub, LinkedIn, email), and
+`headshot.jpg`. It is real content, not placeholder copy, and it is what the Next.js
+build ports into MDX.
 
-- Work experience: company, title, dates, one line each, numbers where they exist
-- The three to four awards: name, granting body, year
-- Which projects to feature, including any not public on GitHub
-- Which social accounts (assumed: GitHub, LinkedIn, email)
-- A headshot image file
+Still open: further awards, if the owner has any beyond the one confirmed in §5.3. The
+awards section holds three or four without redesign, so any the owner supplies drop in
+with no layout change.
 
 ### 11.3 Domain
 Deferred by owner. See §7.5.
@@ -194,7 +257,7 @@ Deferred by owner. See §7.5.
 | 15 | Next.js App Router + MDX + Tailwind | Admin is a real app; existing familiarity; one deployment |
 | 16 | GitHub OAuth, single account | Same identity that owns the repo; no stored credential |
 | 17 | *(open — Journey shape, §11.1)* | Settled visually, not in prose |
-| 18 | 3–4 awards → own section; no PDF; headshot yes; GPS stripped always | Owner's decisions except GPS, which is non-negotiable |
+| 18 | Awards → own section; no PDF; headshot yes; GPS stripped always | Owner's decisions except GPS, which is non-negotiable. The original "3–4 awards" figure was the owner's recollection; the résumés contain exactly one, so §5.3 now records one confirmed and the section holds more without redesign |
 | 19 | Ship fast, full structure | See §10 assumption |
 | 20 | Single deployment including admin | Owner override of a two-drop recommendation |
 | 21 | Real content, projects seeded from repos | Owner's choice over placeholders |
@@ -202,3 +265,7 @@ Deferred by owner. See §7.5.
 | 23 | Journey and blog in nav from day one | Structure visible; blog seeded with one real post |
 | 24 | Considered motion | Near-static undersells a photo timeline; showcase-tier reads as a template |
 | 25 | `/projects` own page; About on front door | Owner's decision; About would compete with the Journey |
+| 26 | ~~Light default, dark opt-in~~ **SUPERSEDED by 27** | Owner's decision, 2026-08-19. A portfolio should look the way its author intended on first load; dark stays available as an opt-in |
+| 27 | **Plain / white / empty, tabbed front door.** Supersedes 2, 13, 24, 25, 26 | Owner reviewed three directions on 2026-08-19 and rejected all three as too cluttered and too fancy. Requested a simplistic layout, plain typography, heavy negative space, pure white, and one section per tab instead of a stacked scroll. The reference is davidchung.io, not juliannth.com |
+| 28 | Social links as icons; headshot large and circular, head-framed | Owner's instruction 2026-08-19, reviewing plain-v1. Narrow, explicit exceptions to decision 27's no-icons / no-photo-treatment rules; everything else in 27 stands |
+| 29 | Social icons near-black (`#111111`); link accent unchanged | Owner's instruction 2026-08-19, reviewing plain-v2: "the social icon should be black." Scoped to the icons — body links stay accent-coloured and underlined, because links that look like text are a usability regression |
