@@ -21,6 +21,10 @@ PAGES = ["index.html", "journey.html", "blog.html"]
 ALLOWED_LINK_PREFIXES = (
     "https://github.com/jagong-cmu",
     "https://linkedin.com/in/gong-jonathan",
+    # Companies the owner has confirmed by name (PRD decision 30). Only confirmed ones are
+    # listed: an unlinked company name is correct, a guessed domain is not.
+    "https://scottylabs.org",
+    "https://996ventures.com",
     "mailto:",
 )
 

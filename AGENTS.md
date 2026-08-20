@@ -34,6 +34,12 @@ Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, whi
 every push and pull request. Run it locally before pushing a visual change; a failure names
 the rule and the offending line. It is a guard, not the specification — `PRD.md` §9 is.
 
+Outbound links are allowlisted by destination in that script (`ALLOWED_LINK_PREFIXES`), so
+any new absolute `href` fails CI until it is added. The gate is deliberate: a destination
+goes on the list only once the owner has confirmed it, and the confirmation is recorded in
+the `PRD.md` decision log. Never add a guessed URL to clear the check — leaving the text
+unlinked is the correct outcome for an unconfirmed destination.
+
 ## Maintaining this file
 
 Keep this file for knowledge useful to almost every future agent session in this project.
