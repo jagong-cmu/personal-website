@@ -28,6 +28,25 @@ ALLOWED_LINK_PREFIXES = (
     "mailto:",
 )
 
+# A prefix above names a whole destination, so it matches only at a boundary: the URL is
+# either exactly the prefix or continues with one of these. `996ventures.community` and
+# `996ventures.com.co` are therefore different destinations from `996ventures.com`, and
+# stay unapproved until the owner confirms them by name.
+LINK_BOUNDARY = "/?#"
+
+
+def is_allowed_link(url):
+    for prefix in ALLOWED_LINK_PREFIXES:
+        if prefix.endswith(":"):  # A bare scheme such as mailto: has no host to bound.
+            if url.startswith(prefix):
+                return True
+        elif url == prefix:
+            return True
+        elif url.startswith(prefix) and url[len(prefix)] in LINK_BOUNDARY:
+            return True
+    return False
+
+
 failures = []
 
 
@@ -91,7 +110,7 @@ def check_external_requests(path, text):
         for m in re.finditer(r"""\bhref\s*=\s*["']([^"']+)["']""", line, re.I):
             url = m.group(1).strip()
             if url.startswith(("http://", "https://", "//", "mailto:")):
-                if not url.startswith(ALLOWED_LINK_PREFIXES):
+                if not is_allowed_link(url):
                     fail("zero-external-requests", path, n,
                          f"Absolute link to an unapproved destination: {url}\n"
                          f"    Allowed: {', '.join(ALLOWED_LINK_PREFIXES)}")
