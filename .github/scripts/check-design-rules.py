@@ -40,9 +40,11 @@ def is_allowed_link(url):
         if prefix.endswith(":"):  # A bare scheme such as mailto: has no host to bound.
             if url.startswith(prefix):
                 return True
-        elif url == prefix:
+            continue
+        prefix = prefix.rstrip("/")  # An entry reads the same with or without a trailing slash.
+        if url == prefix:
             return True
-        elif url.startswith(prefix) and url[len(prefix)] in LINK_BOUNDARY:
+        if url.startswith(prefix) and url[len(prefix)] in LINK_BOUNDARY:
             return True
     return False
 
