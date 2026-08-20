@@ -2,7 +2,7 @@
 
 Personal site for Jonathan Gong — portfolio, writing, and a photographic timeline.
 
-Live at: _(not yet deployed)_
+Live at: _(no domain yet — the static preview described below is what deploys)_
 
 ## What this is
 

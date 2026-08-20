@@ -1,1 +1,5 @@
+# Repo docs are not part of the site. Without this, a zero-config static deploy would
+# serve PRD.md, README.md, and AGENTS.md at /PRD.md etc. on the deploy URL.
+# Narrow this if repo content ever lands as .md — .vercelignore also withholds files
+# from the build upload, so a matched content file would be missing at build time.
 *.md

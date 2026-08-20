@@ -1,9 +1,11 @@
 # Jonathan Gong — Personal Website PRD
 
-- **Project:** `jagong-cmu/personal-website` (public, empty at time of writing)
+- **Project:** `jagong-cmu/personal-website` (public)
 - **Owner:** Jonathan Gong
-- **Status:** Awaiting sign-off. No code written yet.
-- **Date:** 2026-08-18
+- **Status:** Visual direction approved (§9, decisions 27–29). The approved static preview
+  is landed at the repository root and deploys on Vercel for review; the Next.js build in
+  §7 has not started. `README.md` covers the preview.
+- **Date:** 2026-08-18, last revised 2026-08-19
 - **Source:** Derived from a four-round requirements interview. Every decision below traces to the log in §13.
 
 ---
@@ -67,7 +69,7 @@ All content is MDX or structured data files committed to the repository. There i
 Company, role, date range, and two to three lines written as outcomes with concrete numbers wherever they exist. Terse listings undersell; metrics are what make this section work.
 
 ### 5.2 Projects — file-edited, hand-curated
-Name, one-line summary, longer description, tech, links (repo, live). Seeded from real repositories: `patientscopeai`, `transcript-analyzer`, `corgihackathon`, `icu-insights-hub`, `ai-job-search`, plus any not represented publicly.
+Name, one-line summary, longer description, tech, links (repo, live). The set is now curated and settled — the five projects carried by the root static preview (§11.2) — which supersedes the earlier guess at which public repositories would be featured.
 
 ### 5.3 Awards — file-edited
 Own section on the front door. Three to four entries: name, granting body, year.
@@ -168,6 +170,10 @@ Hard rules, stated as prohibitions because that is how this direction fails:
     on the site.
 - **Colour is black text on white**, plus grey for metadata. At most one restrained accent,
   used for links only. No accent backgrounds.
+  - **Exception, owner's instruction 2026-08-19:** the three social icons are near-black
+    (`#111111`), not accent-coloured. The accent itself is untouched — body links stay
+    visibly link-coloured. Do not "unify" the two: links that read as plain text are a
+    usability regression, not a simplification.
 - **Motion is near-zero.** A plain instant tab switch is the default. Nothing animates in on
   scroll. This supersedes decision 24.
 - **No theme toggle.** The site is white. Dark mode is dropped for now; this supersedes
@@ -187,6 +193,11 @@ size that reads as a portrait rather than an avatar. No border, no shadow, no fi
 | 3 | Admin built: GitHub auth, editor, image pipeline, commit layer | Working end to end |
 | 4 | Real content in, one blog post written, domain connected | Launch |
 
+Stage 1 closed on 2026-08-19: the owner approved the plain/white/empty direction after
+four review rounds, and §9 is the result. The approved static preview now deploys on
+Vercel as a **review** URL so that design can be checked on a real screen. That does not
+loosen the rule above — the launch is still stages 2–4 shipping together.
+
 **Assumption carried forward, flagged for overrule:** "live as soon as possible" is satisfied by seeing mockups within a day or two, *not* by an early deployment. Under this reading nothing is lost but an early URL that would not have been shared anyway. If a deployed public site is wanted before the admin exists, this reverts to two drops and stages 2 and 3 ship separately.
 
 ## 11. Open items
@@ -195,13 +206,13 @@ size that reads as a portrait rather than an avatar. No border, no shadow, no fi
 The precise structure and visual treatment of the Journey is unsettled **on purpose**. It is the part of the site the owner cares most about, and prose is the wrong medium for deciding it. It will be built with defaults — era chapters, date ranges, work entries visually distinguished — and settled by reacting to a real screen. Expect revision here; it is planned for, not a risk.
 
 ### 11.2 Content required from owner
-Blocks the real build, not the mockups.
+Supplied 2026-08-19 and now living in the root static preview: work experience, the
+curated projects, awards, the three social accounts (GitHub, LinkedIn, email), and
+`headshot.jpg`. It is real content, not placeholder copy, and it is what the Next.js
+build ports into MDX.
 
-- Work experience: company, title, dates, one line each, numbers where they exist
-- The three to four awards: name, granting body, year
-- Which projects to feature, including any not public on GitHub
-- Which social accounts (assumed: GitHub, LinkedIn, email)
-- A headshot image file
+Still open: the preview carries **one** award, where §5.3 and decision 18 anticipate
+three to four. Either more awards are supplied or §5.3 changes.
 
 ### 11.3 Domain
 Deferred by owner. See §7.5.
@@ -246,3 +257,4 @@ Deferred by owner. See §7.5.
 | 26 | ~~Light default, dark opt-in~~ **SUPERSEDED by 27** | Owner's decision, 2026-08-19. A portfolio should look the way its author intended on first load; dark stays available as an opt-in |
 | 27 | **Plain / white / empty, tabbed front door.** Supersedes 2, 13, 24, 25, 26 | Owner reviewed three directions on 2026-08-19 and rejected all three as too cluttered and too fancy. Requested a simplistic layout, plain typography, heavy negative space, pure white, and one section per tab instead of a stacked scroll. The reference is davidchung.io, not juliannth.com |
 | 28 | Social links as icons; headshot large and circular, head-framed | Owner's instruction 2026-08-19, reviewing plain-v1. Narrow, explicit exceptions to decision 27's no-icons / no-photo-treatment rules; everything else in 27 stands |
+| 29 | Social icons near-black (`#111111`); link accent unchanged | Owner's instruction 2026-08-19, reviewing plain-v2: "the social icon should be black." Scoped to the icons — body links stay accent-coloured and underlined, because links that look like text are a usability regression |
