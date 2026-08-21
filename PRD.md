@@ -85,7 +85,7 @@ padding, no placeholder, no "more coming". If the owner supplies more they drop 
 layout change (open item, §11.2).
 
 ### 5.4 Blog — admin-managed
-Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. Ships with **one real post** at launch — an empty blog reads as abandoned, a single genuine post reads as a beginning.
+Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. **Ships empty.** Posts are occasional and go up when one is written; there is no post required at launch (decision 34).
 
 ### 5.5 Journey — admin-managed
 Grouped into **eras** — chapters such as childhood, high school, each CMU year. Each entry carries:
@@ -205,7 +205,7 @@ instruction 2026-08-20, exercising the overrule the earlier plan explicitly held
 | 1 | Three visual directions — front door + one Journey screen, side by side | **Closed 2026-08-19.** Owner approved plain/white/empty; §9 is the result |
 | 2 | Public site built: front door, /projects, /journey, /blog | **Deployed as the static preview**, on `jonathangong.com`, and shipping continuously. The Next.js build has not started |
 | 3 | Admin built: GitHub auth, editor, image pipeline, commit layer | **Not started.** Now its own drop, with no gate on the public site |
-| 4 | Real content in, one blog post written, domain connected | Domain connected 2026-08-20. Real front-door and Journey content is in; the blog post is outstanding |
+| 4 | Real content in, domain connected | Domain connected 2026-08-20. Real front-door and Journey content is in; the blog ships empty by choice (decision 34) |
 
 Stage 2's row is the one to read carefully: what is live is the hand-written static preview,
 not the architecture in §7. Public-site work continues to ship straight to production; the
@@ -253,7 +253,7 @@ See §7.5.
 |---|---|---|
 | 1 | Recruiter-first, personal depth as differentiator | Competing in the CMU pipeline; the human layer is the edge |
 | 2 | Front door / deep room structure | Journey-led buries the professional material; co-equal nav flattens emphasis |
-| 3 | Blog real but occasional; one post at launch | Zero posts reads as abandoned |
+| 3 | ~~Blog real but occasional; one post at launch~~ **SUPERSEDED by 34** | Zero posts reads as abandoned. That reasoning is overruled, not reinterpreted: the site is live with an empty blog and the owner accepts how it reads. The blog stays real and occasional under 34; only the at-launch post is retired |
 | 4 | Admin UI for content | Owner override of a files-only recommendation |
 | 5 | Name: Jonathan Gong; domain deferred | Deferral closed 2026-08-20: `jonathangong.com` is registered and serving the site (§7.5, decision 32) |
 | 6 | True clean slate; old `portfolio` repo ignored entirely | Owner's decision |
@@ -273,7 +273,7 @@ See §7.5.
 | 20 | ~~Single deployment including admin~~ **SUPERSEDED by 32** | Owner override of a two-drop recommendation. Overtaken by events: the public site went live on its own domain before the admin existed, which §10 had already flagged as the condition for reverting to two drops |
 | 21 | Real content, projects seeded from repos | Owner's choice over placeholders |
 | 22 | Three visual directions | Taste is comparative |
-| 23 | Journey and blog in nav from day one | Structure visible; blog seeded with one real post |
+| 23 | Journey and blog in nav from day one | Structure visible; the blog ships empty (decision 34) |
 | 24 | Considered motion | Near-static undersells a photo timeline; showcase-tier reads as a template |
 | 25 | `/projects` own page; About on front door | Owner's decision; About would compete with the Journey |
 | 26 | ~~Light default, dark opt-in~~ **SUPERSEDED by 27** | Owner's decision, 2026-08-19. A portfolio should look the way its author intended on first load; dark stays available as an opt-in |
@@ -284,3 +284,4 @@ See §7.5.
 | 31 | CMU Sophomore era removed from the Journey | Owner's instruction 2026-08-20. Drops 996 Ventures and "Back on campus" from the timeline; 996 Ventures stays on the front door's Work tab, the same pattern as the earlier Bizybear removal (§11.1). The Journey is a curated set of chapters, not a complete record |
 | 32 | **Public site live before the admin exists.** Supersedes 20 | Captain's instruction 2026-08-20. `jonathangong.com` is registered, connected, and serving the static preview in production. §10 had carried the single-deployment rule as an assumption flagged for overrule; this is that overrule, so §10 is now two drops and the admin (stage 3) ships separately |
 | 33 | Committed images must carry no embedded metadata, enforced in CI | Two photos in the first real Journey batch arrived carrying GPS that resolved to real locations, and this repository is public — an unstripped commit publishes them permanently in git history. §7.3 and §8 already required stripping; `check-design-rules.py` now makes it structural rather than dependent on whoever adds the next photo. Parsed at the JPEG-segment / PNG-chunk level, because the bytes `Exif` and `GPS` occur naturally inside compressed scan data and a substring search flags clean files |
+| 34 | **Blog ships empty; posts are occasional, added when written.** Supersedes 3 | Captain's instruction 2026-08-20, retiring the requirement that the site launch with one real post. Decision 3's "zero posts reads as abandoned" rationale is overruled outright: the public site is live at `jonathangong.com` with no posts and that is the accepted state. §5.4 and stage 4 of §10 follow; row 23's "blog seeded with one real post" clause is retired with it |
