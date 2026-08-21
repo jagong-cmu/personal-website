@@ -5,7 +5,7 @@
 - **Status:** Visual direction approved (§9, decisions 27–30). The approved static preview
   is landed at the repository root and is **live in production on `jonathangong.com`**; the
   Next.js build in §7 has not started. `README.md` covers the preview.
-- **Date:** 2026-08-18, last revised 2026-08-20
+- **Date:** 2026-08-18, last revised 2026-08-21
 - **Source:** Derived from a four-round requirements interview. Every decision below traces to the log in §13.
 
 ---
@@ -49,7 +49,6 @@ content area in place. Each tab is a real route so it can be linked and bookmark
   /about          About — a short paragraph
   /work           Work experience
   /projects       Projects
-  /awards         Awards
 /journey          Era-chaptered photographic timeline  [noindexed]
 /blog             Post index → /blog/[slug]
 /admin            Authenticated content management  [noindexed, nofollow]
@@ -75,25 +74,12 @@ lines written as outcomes with concrete numbers" rule on the owner's explicit in
 ### 5.2 Projects — file-edited, hand-curated
 Name, one-line summary, description, tech, links (repo, live). The description takes the same form
 as §5.1 — one to two sentences of prose, no bullet lists, no required metrics (decision 35).
-The set is now curated and settled — the five projects carried by the root static preview (§11.2) — which supersedes the earlier guess at which public repositories would be featured.
+The set is now curated and settled — the five projects carried by the root static preview (§11.2) — which supersedes the earlier guess at which public repositories would be featured. An entry carries its own award mention where one applies, which is where the confirmed award now lives (decision 39).
 
-### 5.3 Awards — file-edited
-Own section, one tab. Each entry: name, granting body, year.
-
-**Exactly ONE award is confirmed** — 1st Place, Y Combinator × Moss Conversational AI
-Hackathon (June 2026, 200+ competitors, sponsored by Unsiloed AI). The owner believed there
-were three or four; all three résumé versions were read in full on 2026-08-18 and contain
-only this one. The earlier "three to four entries" figure recorded that belief and was
-wrong; it is corrected here rather than left as a requirement the site cannot meet.
-
-The section is built to hold three or four gracefully and renders one deliberately — no
-padding, no placeholder, no "more coming". If the owner supplies more they drop in with no
-layout change (open item, §11.2).
-
-### 5.4 Blog — admin-managed
+### 5.3 Blog — admin-managed
 Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. **Ships empty.** Posts are occasional and go up when one is written; there is no post required at launch (decision 34).
 
-### 5.5 Journey — admin-managed
+### 5.4 Journey — admin-managed
 Grouped into **eras** — chapters such as childhood, high school, each CMU year. Each entry carries:
 
 - a **date range**, not a single date, so a season and a moment are both expressible
@@ -265,13 +251,14 @@ Three owner-scoped edits already made to the preview are waiting on that reactio
 
 ### 11.2 Content required from owner
 Supplied 2026-08-19 and now living in the root static preview: work experience, the
-curated projects, awards, the three social accounts (GitHub, LinkedIn, email), and
+curated projects, the three social accounts (GitHub, LinkedIn, email), and
 `headshot.jpg`. It is real content, not placeholder copy, and it is what the Next.js
 build ports into MDX.
 
-Still open: further awards, if the owner has any beyond the one confirmed in §5.3. The
-awards section holds three or four without redesign, so any the owner supplies drop in
-with no layout change.
+**Closed 2026-08-21 by decision 39.** The awards open item is retired with the section
+that held it: the one confirmed award is a sentence inside the ManuAI project entry, and
+there is no longer a section standing empty-handed waiting for a second. A further award
+is an owner decision about where it goes, not a slot already cut for it.
 
 ### 11.3 Domain
 **Closed 2026-08-20.** `jonathangong.com` is registered, connected, and serving the site.
@@ -306,7 +293,7 @@ See §7.5.
 | 15 | Next.js App Router + MDX + Tailwind | Admin is a real app; existing familiarity; one deployment |
 | 16 | GitHub OAuth, single account | Same identity that owns the repo; no stored credential |
 | 17 | *(open — Journey shape, §11.1)* | Settled visually, not in prose |
-| 18 | Awards → own section; no PDF; headshot yes; GPS stripped always | Owner's decisions except GPS, which is non-negotiable. The original "3–4 awards" figure was the owner's recollection; the résumés contain exactly one, so §5.3 now records one confirmed and the section holds more without redesign |
+| 18 | ~~Awards → own section~~ **SUPERSEDED by 39**; no PDF; headshot yes; GPS stripped always | Owner's decisions except GPS, which is non-negotiable. The original "3–4 awards" figure was the owner's recollection; the résumés contain exactly one, and the section built to hold more is gone under 39 — the award now sits in the project it was won with. The rest of the row stands |
 | 19 | Ship fast, full structure | See §10, now two drops (decision 32) |
 | 20 | ~~Single deployment including admin~~ **SUPERSEDED by 32** | Owner override of a two-drop recommendation. Overtaken by events: the public site went live on its own domain before the admin existed, which §10 had already flagged as the condition for reverting to two drops |
 | 21 | Real content, projects seeded from repos | Owner's choice over placeholders |
@@ -322,8 +309,10 @@ See §7.5.
 | 31 | CMU Sophomore era removed from the Journey | Owner's instruction 2026-08-20. Drops 996 Ventures and "Back on campus" from the timeline; 996 Ventures stays on the front door's Work tab, the same pattern as the earlier Bizybear removal (§11.1). The Journey is a curated set of chapters, not a complete record |
 | 32 | **Public site live before the admin exists.** Supersedes 20 | Captain's instruction 2026-08-20. `jonathangong.com` is registered, connected, and serving the static preview in production. §10 had carried the single-deployment rule as an assumption flagged for overrule; this is that overrule, so §10 is now two drops and the admin (stage 3) ships separately |
 | 33 | Committed images must carry no embedded metadata, enforced in CI | Two photos in the first real Journey batch arrived carrying GPS that resolved to real locations, and this repository is public — an unstripped commit publishes them permanently in git history. §7.3 and §8 already required stripping; `check-design-rules.py` now makes it structural rather than dependent on whoever adds the next photo. Parsed at the JPEG-segment / PNG-chunk level, because the bytes `Exif` and `GPS` occur naturally inside compressed scan data and a substring search flags clean files |
-| 34 | **Blog ships empty; posts are occasional, added when written.** Supersedes 3 | Captain's instruction 2026-08-20, retiring the requirement that the site launch with one real post. Decision 3's "zero posts reads as abandoned" rationale is overruled outright: the public site is live at `jonathangong.com` with no posts and that is the accepted state. §5.4 and stage 4 of §10 follow; row 23's "blog seeded with one real post" clause is retired with it |
+| 34 | **Blog ships empty; posts are occasional, added when written.** Supersedes 3 | Captain's instruction 2026-08-20, retiring the requirement that the site launch with one real post. Decision 3's "zero posts reads as abandoned" rationale is overruled outright: the public site is live at `jonathangong.com` with no posts and that is the accepted state. §5.3 and stage 4 of §10 follow; row 23's "blog seeded with one real post" clause is retired with it |
 | 35 | **Work and project entries are brief prose with no metrics.** Supersedes 11 | Owner's explicit instruction 2026-08-20, against firstmate's recommendation to keep the figures. Every three-bullet `entry-body` list in Work and Projects became one to two sentences, and the numeric performance figures were removed outright — signup counts, ambassador and user counts, bug and turnaround reductions, launch and iteration counts, analytics and simulation counts, and the "200+ competitors" figure inside the ManuAI project entry. Nothing was invented to replace them and short entries stay short. Scoped to Work and Projects: the Awards panel keeps "1st Place" and "200+ competitors", and `entry-meta` lines are unaffected. §5.1 and §5.2 are rewritten to match |
 | 36 | **The measure widens from 720px to 880px.** Narrowly overrides §9 for this token only | Owner's instruction 2026-08-20: "a little bit more, not too much". 720px gave roughly 70 characters at 17px and left the front door feeling narrow; 880px is about 88 characters and still leaves roughly 280px of margin each side at 1440px. Hard cap 900px — the About paragraph is the readability constraint, and past it the line grows harder to track back. A single `--measure` token, not a second prose-vs-entry measure. §9's "Do not fill space" is set aside for this one token and nothing else: the negative-space principle otherwise stands in full |
 | 37 | **`zero-external-requests` narrows from "no `<link>` at all" to "no `<link>` that fetches off-site".** Amends decision 33's checker, one day on | The rule shipped 2026-08-20 rejecting every `<link>` element with "the page must fetch nothing", which overshot its own intent: the same function already permitted same-origin `src` and only failed off-site ones, and `<link rel="canonical">` starts no fetch whatsoever. Blanket rejection would have blocked a canonical tag and a favicon link — both of which fetch nothing the browser would not already request from the root convention paths. The rule now turns on what the tag makes the browser do: any stylesheet link and any off-site href still fail; same-origin `canonical`, `icon`, and `apple-touch-icon` pass, and every other `rel` (`preconnect`, `preload`, `prefetch`, a bare `<link>` with no `rel`) still fails. This is a deliberate narrowing to the rule's stated purpose, not the constraint eroding: zero external requests is unchanged and still enforced, and `.github/scripts/test-design-rules.py` pins both halves — what must still fail and what must now pass — so a future permissive edit fails CI instead of shipping |
 | 38 | The site carries a favicon, per-page metadata, `robots.txt`, and `sitemap.xml` | Owner's instruction 2026-08-21. The live site returned 404 for `/favicon.ico`, `/robots.txt`, and `/sitemap.xml`, and its `<head>` held only charset, viewport, and title, so search results and social previews had nothing to work with. The icons are derived from `headshot.jpg`, cropped tighter to the face because a head-and-shoulders photo turns to mush at 16px, and land at the root convention paths so they work with or without a `<link>` tag. Descriptions are per page and distinct. `journey.html` is excluded from the promotion — it keeps its `noindex`, gets no canonical, no Open Graph, and no structured data, and is left out of the sitemap (§8). It is deliberately **not** `Disallow`ed in `robots.txt`: a disallowed page is never crawled, so its `noindex` is never read and the bare URL can still be indexed from inbound links, which would make the exclusion weaker rather than stronger. Canonical URLs name the apex because apex and `www` both serve 200 (§7.5). `sameAs` lists only the GitHub and LinkedIn URLs already confirmed in `ALLOWED_LINK_PREFIXES`; decision 30's no-guessed-URLs rule applies to structured data too. No visible pixel changes except the browser tab icon. §7.6 carries this contract forward as a requirement of the Next.js build |
+| 39 | **Awards section removed; the one award lives in the ManuAI project entry.** Supersedes 18 | Owner's instruction 2026-08-21. The award is only legible next to the thing that won it, and a tab holding a single entry advertised its own thinness. The ManuAI entry already carried the sentence, so this was a deletion, not a migration: the `#awards` tab, its panel, and its entry in the front door's `TABS` array are gone from `index.html`, and the dangling `Awards` link is gone from the `journey.html` and `blog.html` mastheads. "200+ competitors" dies with the panel and is not relocated — it was the last numeric claim in that area and decision 35 already removed the others. §4, §5.2, §5.3 and §11.2 follow; a stale `#awards` bookmark falls back to About, which is the routing that was already there |
+| 40 | Corgi and Scurry confirmed as linkable companies | Owner's confirmation 2026-08-21, logged as decision 30 requires. `https://www.corgi.insure/` and `https://scurryconsulting.com/`, both reachable at the time of confirmation and added to `ALLOWED_LINK_PREFIXES` exactly as given — Corgi's host carries `www.` and Scurry's does not, and neither was normalised into the other's shape. The company name is linked, not the role, matching 996 Ventures and ScottyLabs. Bizybear stays plain text: no URL has been confirmed for it, and decision 30 makes an unlinked name the correct outcome rather than a gap to fill |
