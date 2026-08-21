@@ -255,7 +255,7 @@ See §7.5.
 | 2 | Front door / deep room structure | Journey-led buries the professional material; co-equal nav flattens emphasis |
 | 3 | Blog real but occasional; one post at launch | Zero posts reads as abandoned |
 | 4 | Admin UI for content | Owner override of a files-only recommendation |
-| 5 | Name: Jonathan Gong; domain deferred | — |
+| 5 | Name: Jonathan Gong; domain deferred | Deferral closed 2026-08-20: `jonathangong.com` is registered and serving the site (§7.5, decision 32) |
 | 6 | True clean slate; old `portfolio` repo ignored entirely | Owner's decision |
 | 7 | Git-backed content, no database | ~6 posts/year does not justify permanent database operation; git gives history, backup, rollback, portability free |
 | 8 | Admin scope: content only | Work/projects/awards change rarely; a CRUD interface for five fields costs more than editing a file |

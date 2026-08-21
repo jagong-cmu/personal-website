@@ -16,7 +16,9 @@ truth for the eventual architecture — never infer the stack from these files.
 
 Each page duplicates the whole stylesheet and masthead, so any header or style change is a
 three-way edit. That duplication is accepted for the preview and goes away in the Next.js
-build.
+build; CI's `stylesheets-identical` rule fails if the three inline stylesheets drift apart.
+The mastheads legitimately differ — `index.html` does not wrap its own name in a self-link —
+so they are not checked.
 
 ## Binding visual constraints
 
@@ -36,7 +38,7 @@ git history (`PRD.md` §7.3, §8, decision 33). Make the change asked for and no
 
 Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, which runs on
 every push and pull request. Run it locally before pushing a visual change; a failure names
-the rule and the offending line. It is a guard, not the specification — `PRD.md` §9 is.
+the rule and where it fired. It is a guard, not the specification — `PRD.md` §9 is.
 
 Outbound links are allowlisted by destination in that script (`ALLOWED_LINK_PREFIXES`), so
 any new absolute `href` fails CI until it is added. The gate is deliberate: a destination
