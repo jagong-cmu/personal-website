@@ -34,7 +34,12 @@ expect to find them there: **zero external requests** (no web fonts, no CDN, no 
 external CSS/JS), no phone number anywhere, and **no committed image may carry embedded
 metadata** — GPS and EXIF are stripped before an image lands, non-optionally, because this
 repository is public and an unstripped commit publishes the owner's locations permanently into
-git history (`PRD.md` §7.3, §8, decision 33). Make the change asked for and nothing else.
+git history (`PRD.md` §7.3, §8, decision 33).
+CI's `no-image-metadata` rule fails the build on anything that still carries it, and for the static preview the strip is a manual step, done with exactly this command: `magick <in> -auto-orient -strip -resize '1600x1600>' -quality 82 <out>`.
+`-auto-orient` must come before `-strip`, because stripping removes the EXIF orientation tag and a plain `-strip` therefore leaves a phone photo rotated on the page.
+That invocation produced the seven `journey/` photographs, so it is recorded history rather than a suggestion: do not substitute another tool, add flags, or reorder it.
+It is the preview-era procedure only, and `PRD.md` §7.3 owns the eventual build-time `sharp` pipeline that subsumes it once the Next.js application lands.
+Make the change asked for and nothing else.
 
 Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, which runs on
 every push and pull request. Run it locally before pushing a visual change; a failure names
