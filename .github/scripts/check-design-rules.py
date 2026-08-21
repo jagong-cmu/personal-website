@@ -3,13 +3,16 @@
 
 The site is plain, white, and self-contained on purpose. Those constraints are easy to
 erode one well-meaning edit at a time, so they are asserted here instead of being left to
-memory. Every rule below is recorded in PRD.md section 9.
+memory. Most rules below are recorded in PRD.md section 9; the two that are not are named
+where they are defined — no-image-metadata comes from PRD.md sections 7.3 and 8 (decision
+33), and stylesheets-identical from AGENTS.md.
 
 Standard library only. Run it from the repository root:
 
     python3 .github/scripts/check-design-rules.py
 """
 
+import hashlib
 import os
 import re
 import sys
@@ -287,6 +290,10 @@ def check_internal_links(path, text, root):
 # Parsed at the segment/chunk level rather than searched for as text: byte sequences such
 # as `Exif` and `GPS` occur naturally inside entropy-coded scan data, so a substring search
 # reports photographs that are in fact clean.
+#
+# The rule fails closed. A file is parsed by what its bytes are, not by what its name claims,
+# and a file whose metadata cannot be read to the end is a failure rather than a pass: an
+# image this rule cannot account for is one nobody has shown to be stripped.
 
 IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png")
 
@@ -297,56 +304,68 @@ for _n in range(1, 16):
     JPEG_METADATA_MARKERS[0xE0 + _n] = f"APP{_n}"
 
 # Segments with no payload length, plus SOI. Scanning stops at SOS, where entropy-coded
-# image data begins and marker parsing no longer applies.
-JPEG_STANDALONE = {0xD8, 0xD9} | set(range(0xD0, 0xD8))
+# image data begins and marker parsing no longer applies, or at EOI.
+JPEG_STANDALONE = {0xD8} | set(range(0xD0, 0xD8))
+
+JPEG_SIGNATURE = b"\xff\xd8"
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 PNG_METADATA_CHUNKS = {b"tEXt", b"iTXt", b"zTXt", b"eXIf"}
+PNG_CHUNK_TYPE = re.compile(rb"[A-Za-z]{4}")
 
 
 def jpeg_metadata_segments(data):
-    """Names of the metadata-bearing segments in a JPEG, in file order."""
+    """(names, error) for a JPEG: metadata-bearing segments in file order, and why the
+    scan stopped. `error` is None only when the marker sequence ran cleanly to the start of
+    scan or the end of image; anything else means the segments could not all be read, so
+    the names found so far do not amount to a clean bill."""
     found = []
-    if not data.startswith(b"\xff\xd8"):
-        return found
     i = 2
     while i + 1 < len(data):
         if data[i] != 0xFF:
-            break
+            return found, f"expected a marker at byte {i}, found 0x{data[i]:02X}"
         marker = data[i + 1]
         if marker == 0xFF:  # Fill byte; markers may be padded with them.
             i += 1
             continue
+        if marker == 0xDA:  # Start of scan — compressed pixel data follows.
+            return found, None
+        if marker == 0xD9:  # End of image, reached without a scan.
+            return found, None
         if marker in JPEG_STANDALONE:
             i += 2
             continue
-        if marker == 0xDA:  # Start of scan — compressed pixel data follows.
-            break
         if i + 3 >= len(data):
-            break
+            return found, f"the segment header at byte {i} is cut off by the end of the file"
         length = int.from_bytes(data[i + 2:i + 4], "big")
         if length < 2:
-            break
+            return found, f"the segment at byte {i} declares an impossible length of {length}"
+        i += 2 + length
+        if i > len(data):
+            return found, f"the segment at byte {i - 2 - length} runs past the end of the file"
         if marker in JPEG_METADATA_MARKERS:
             found.append(JPEG_METADATA_MARKERS[marker])
-        i += 2 + length
-    return found
+    return found, "the marker sequence ran off the end of the file without a start-of-scan marker"
 
 
 def png_metadata_chunks(data):
-    """Names of the metadata-bearing chunks in a PNG, in file order."""
+    """(names, error) for a PNG, on the same terms as jpeg_metadata_segments: `error` is
+    None only when the chunk sequence ran cleanly to IEND."""
     found = []
-    if not data.startswith(b"\x89PNG\r\n\x1a\n"):
-        return found
     i = 8
     while i + 8 <= len(data):
         length = int.from_bytes(data[i:i + 4], "big")
         kind = data[i + 4:i + 8]
+        if not PNG_CHUNK_TYPE.fullmatch(kind):
+            return found, f"the chunk type at byte {i + 4} is not four letters: {kind!r}"
         if kind in PNG_METADATA_CHUNKS:
             found.append(kind.decode("ascii"))
         if kind == b"IEND":
-            break
+            return found, None
         i += 12 + length  # length + type + data + CRC
-    return found
+        if i > len(data):
+            return found, f"the {kind.decode('ascii')} chunk declares a length that runs past the end of the file"
+    return found, "the chunk sequence ran off the end of the file without an IEND chunk"
 
 
 def check_image_metadata(root):
@@ -362,10 +381,25 @@ def check_image_metadata(root):
             rel = os.path.relpath(full, root)
             with open(full, "rb") as handle:
                 data = handle.read()
-            if name.lower().endswith(".png"):
-                found = png_metadata_chunks(data)
+            if data.startswith(JPEG_SIGNATURE):
+                kind, (found, error) = "JPEG", jpeg_metadata_segments(data)
+            elif data.startswith(PNG_SIGNATURE):
+                kind, (found, error) = "PNG", png_metadata_chunks(data)
             else:
-                found = jpeg_metadata_segments(data)
+                fail("no-image-metadata", rel, None,
+                     f"Bytes are neither a JPEG nor a PNG: the file opens with "
+                     f"{data[:8].hex(' ').upper() or '(nothing)'}, matching neither FF D8 nor "
+                     f"89 50 4E 47 0D 0A 1A 0A. A `.png` straight off a phone is often a JPEG.\n"
+                     f"    Its metadata cannot be read, so it cannot be shown to be stripped, "
+                     f"and this rule never resolves unreadable to clean (PRD sections 7.3 "
+                     f"and 8).")
+                continue
+            if error:
+                fail("no-image-metadata", rel, None,
+                     f"This {kind} could not be read to the end of its metadata: {error}.\n"
+                     f"    A file that does not parse cannot be shown to be stripped of GPS "
+                     f"and EXIF, so it fails the rule rather than passing it by default "
+                     f"(PRD sections 7.3 and 8).")
             if found:
                 fail("no-image-metadata", rel, None,
                      f"Embedded metadata found: {', '.join(found)}.\n"
@@ -391,14 +425,22 @@ def check_stylesheets_identical(pages):
     if len(set(sheets.values())) <= 1:
         return
 
-    reference = sheets.get("index.html")
-    diverged = sorted(p for p, css in sheets.items() if css != reference)
-    for path in diverged:
-        fail("stylesheets-identical", path, None,
-             "This page's inline stylesheet differs from index.html's.\n"
-             "    The three pages carry a byte-identical copy of the whole sheet, so any CSS "
-             "change is a three-way edit.\n"
-             f"    Diverging from index.html: {', '.join(diverged)}")
+    # No page is the reference: the one that was edited is as likely to be the outlier as
+    # the majority. Report the drift once, naming every participant and grouping the pages
+    # that still agree, so the odd sheet out is the odd group out.
+    groups = {}
+    for path in sorted(sheets):
+        groups.setdefault(sheets[path], []).append(path)
+    described = "\n    ".join(
+        f"{', '.join(paths)}: {len(css)} bytes, sha256 {hashlib.sha256(css.encode()).hexdigest()[:12]}"
+        for css, paths in sorted(groups.items(), key=lambda item: item[1]))
+
+    fail("stylesheets-identical", ", ".join(sorted(sheets)), None,
+         f"The inline stylesheets have drifted into {len(groups)} versions:\n"
+         f"    {described}\n"
+         "    Every page carries a byte-identical copy of the whole sheet, so a CSS change "
+         "is a three-way edit. Whichever version was edited last, all three must end up "
+         "the same.")
 
 
 def main():
@@ -430,8 +472,10 @@ def main():
         print(f"Design rules: {len(failures)} violation(s).\n")
         for item in failures:
             print(item)
-        print("\nThese rules are recorded in PRD.md section 9. They are prohibitions, not "
-              "preferences.\nIf a rule genuinely needs to change, change it there first.")
+        print("\nThese rules are recorded in PRD.md — section 9 for the visual ones, "
+              "sections 7.3 and 8\n(decision 33) for no-image-metadata — and in AGENTS.md "
+              "for stylesheets-identical.\nThey are prohibitions, not preferences. If a rule "
+              "genuinely needs to change, change it\nthere first.")
         return 1
 
     print(f"Design rules: all checks passed across {len(pages)} pages "

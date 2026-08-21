@@ -269,7 +269,7 @@ See §7.5.
 | 16 | GitHub OAuth, single account | Same identity that owns the repo; no stored credential |
 | 17 | *(open — Journey shape, §11.1)* | Settled visually, not in prose |
 | 18 | Awards → own section; no PDF; headshot yes; GPS stripped always | Owner's decisions except GPS, which is non-negotiable. The original "3–4 awards" figure was the owner's recollection; the résumés contain exactly one, so §5.3 now records one confirmed and the section holds more without redesign |
-| 19 | Ship fast, full structure | See §10 assumption |
+| 19 | Ship fast, full structure | See §10, now two drops (decision 32) |
 | 20 | ~~Single deployment including admin~~ **SUPERSEDED by 32** | Owner override of a two-drop recommendation. Overtaken by events: the public site went live on its own domain before the admin existed, which §10 had already flagged as the condition for reverting to two drops |
 | 21 | Real content, projects seeded from repos | Owner's choice over placeholders |
 | 22 | Three visual directions | Taste is comparative |
