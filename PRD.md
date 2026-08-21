@@ -178,6 +178,10 @@ Hard rules, stated as prohibitions because that is how this direction fails:
   no variable-width tricks, no letterspaced small caps. One family, two or three sizes.
 - **Negative space is the design.** Generous margins and large gaps are the point; if a
   screen looks sparse, it is correct. Do not fill space.
+  - **Exception, owner's instruction 2026-08-20:** the measure is `880px`, widened from
+    `720px`, capped at `900px` because the About paragraph is the readability constraint.
+    "Do not fill space" is set aside for the single `--measure` token and nothing else
+    (decision 36). Do not narrow it back as a correction.
 - **No decoration.** No cards, no shadows, no gradients, no borders-as-styling, no
   coloured panels, no badges, no signature motif.
   - **Exception, owner's instruction 2026-08-19:** social links are monochrome inline-SVG
