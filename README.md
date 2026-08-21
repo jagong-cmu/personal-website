@@ -36,9 +36,9 @@ and no dependencies — deliberately.
 
 **Being live does not make them permanent.** They are not the intended architecture and
 will be deleted. They will be REPLACED by the Next.js application described in
-[`PRD.md`](./PRD.md), which remains the source of truth for the eventual build. Do not extend the static files, and do not read them as a
-statement about the stack — the "Stack" section below is what this repository is going to
-become.
+[`PRD.md`](./PRD.md), which remains the source of truth for the eventual build. Do not
+extend the static files, and do not read them as a statement about the stack — the "Stack"
+section below is what this repository is going to become.
 
 ## Stack
 
