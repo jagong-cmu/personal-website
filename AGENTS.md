@@ -6,9 +6,10 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Current stage: static preview at the repo root
 
-`index.html`, `journey.html`, `blog.html`, and `headshot.jpg` at the repo root are an
-owner-approved static preview deployed on Vercel zero-config. They are intentionally
-hand-written, self-contained (inline `<style>`, inline `<script>`, inline SVG), and have
+`index.html`, `journey.html`, `blog.html`, `headshot.jpg`, and `journey/` at the repo root are
+an owner-approved static preview, **live in production on `jonathangong.com`** via Vercel
+zero-config. They are intentionally hand-written, self-contained (inline `<style>`,
+inline `<script>`, inline SVG), and have
 **no build step, no framework, no package.json, and no dependencies**. Do not add any.
 They will be deleted and replaced by the Next.js app in `PRD.md`, which is the source of
 truth for the eventual architecture — never infer the stack from these files.
@@ -26,9 +27,12 @@ type sizes, no shadows/gradients/coloured panels/animation/dark mode. The except
 grants are the inline-SVG social icons — near-black `#111111`, deliberately *not* the link
 colour — and the circular headshot (the site's only non-zero `border-radius`).
 
-Two further prohibitions bind this preview as owner decisions rather than §9 text, so do not
+Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no `<link>`, no
-external CSS/JS) and no phone number anywhere. Make the change asked for and nothing else.
+external CSS/JS), no phone number anywhere, and **no committed image may carry embedded
+metadata** — GPS and EXIF are stripped before an image lands, non-optionally, because this
+repository is public and an unstripped commit publishes the owner's locations permanently into
+git history (`PRD.md` §7.3, §8, decision 33). Make the change asked for and nothing else.
 
 Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, which runs on
 every push and pull request. Run it locally before pushing a visual change; a failure names

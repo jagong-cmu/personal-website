@@ -2,7 +2,7 @@
 
 Personal site for Jonathan Gong — portfolio, writing, and a photographic timeline.
 
-Live at: _(no domain yet — the static preview described below is what deploys)_
+Live at: <https://jonathangong.com>
 
 ## What this is
 
@@ -19,19 +19,23 @@ A recruiter-facing front door with personal depth behind it:
 | `/blog.html` | Writing |
 | `/admin` | Authenticated content management (not built yet) |
 
+This table describes the **live static preview**. Section 4 of [`PRD.md`](./PRD.md) owns the
+eventual route shape (`/journey`, `/blog`, `/blog/[slug]`), which the Next.js build will move to.
+
 See [`PRD.md`](./PRD.md) for the full product requirements and the reasoning behind
 every decision.
 
 ## Current state: static preview (temporary)
 
 The `index.html`, `journey.html`, `blog.html`, and `headshot.jpg` files at the repository
-root are the **owner-approved static preview**, deployed on Vercel zero-config so the
-design can be reviewed on a real URL. They are hand-written HTML with an inline `<style>`
-block and no build step, no framework, and no dependencies — deliberately.
+root are the **owner-approved static preview**, and they are what is live in production
+today at <https://jonathangong.com>, deployed on Vercel zero-config. This is the public site
+at the owner's own domain, not a review link. They are hand-written HTML with an inline
+`<style>` block and no build step, no framework, and no dependencies — deliberately.
 
-**They are not the intended architecture and will be deleted.** They will be REPLACED by
-the Next.js application described in [`PRD.md`](./PRD.md), which remains the source of
-truth for the eventual build. Do not extend the static files, and do not read them as a
+**Being live does not make them permanent.** They are not the intended architecture and
+will be deleted. They will be REPLACED by the Next.js application described in
+[`PRD.md`](./PRD.md), which remains the source of truth for the eventual build. Do not extend the static files, and do not read them as a
 statement about the stack — the "Stack" section below is what this repository is going to
 become.
 

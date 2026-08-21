@@ -275,6 +275,132 @@ def check_internal_links(path, text, root):
                          f"{attr}=\"{url}\" points at {target}, which does not exist in the repository.")
 
 
+# --------------------------------------------------------------------------------------
+# Rule 9 — committed images carry no embedded metadata
+# --------------------------------------------------------------------------------------
+# PRD section 7.3 requires GPS and EXIF stripping "always, non-optional", and section 8
+# states it cannot be disabled. This repository is public, so an unstripped commit
+# publishes the owner's coordinates permanently into git history — two photos in the first
+# Journey batch arrived carrying GPS that resolved to real locations. The rule makes that
+# guarantee structural instead of dependent on whoever adds the next photo.
+#
+# Parsed at the segment/chunk level rather than searched for as text: byte sequences such
+# as `Exif` and `GPS` occur naturally inside entropy-coded scan data, so a substring search
+# reports photographs that are in fact clean.
+
+IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png")
+
+# APP0 (0xE0) is the JFIF container header and is expected. APP1–APP15 carry EXIF, XMP,
+# ICC-embedded metadata, Photoshop resources, and the rest; COM is a free-text comment.
+JPEG_METADATA_MARKERS = {0xFE: "COM"}
+for _n in range(1, 16):
+    JPEG_METADATA_MARKERS[0xE0 + _n] = f"APP{_n}"
+
+# Segments with no payload length, plus SOI. Scanning stops at SOS, where entropy-coded
+# image data begins and marker parsing no longer applies.
+JPEG_STANDALONE = {0xD8, 0xD9} | set(range(0xD0, 0xD8))
+
+PNG_METADATA_CHUNKS = {b"tEXt", b"iTXt", b"zTXt", b"eXIf"}
+
+
+def jpeg_metadata_segments(data):
+    """Names of the metadata-bearing segments in a JPEG, in file order."""
+    found = []
+    if not data.startswith(b"\xff\xd8"):
+        return found
+    i = 2
+    while i + 1 < len(data):
+        if data[i] != 0xFF:
+            break
+        marker = data[i + 1]
+        if marker == 0xFF:  # Fill byte; markers may be padded with them.
+            i += 1
+            continue
+        if marker in JPEG_STANDALONE:
+            i += 2
+            continue
+        if marker == 0xDA:  # Start of scan — compressed pixel data follows.
+            break
+        if i + 3 >= len(data):
+            break
+        length = int.from_bytes(data[i + 2:i + 4], "big")
+        if length < 2:
+            break
+        if marker in JPEG_METADATA_MARKERS:
+            found.append(JPEG_METADATA_MARKERS[marker])
+        i += 2 + length
+    return found
+
+
+def png_metadata_chunks(data):
+    """Names of the metadata-bearing chunks in a PNG, in file order."""
+    found = []
+    if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return found
+    i = 8
+    while i + 8 <= len(data):
+        length = int.from_bytes(data[i:i + 4], "big")
+        kind = data[i + 4:i + 8]
+        if kind in PNG_METADATA_CHUNKS:
+            found.append(kind.decode("ascii"))
+        if kind == b"IEND":
+            break
+        i += 12 + length  # length + type + data + CRC
+    return found
+
+
+def check_image_metadata(root):
+    """Check every committed raster image. Returns how many were inspected."""
+    count = 0
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d != ".git"]
+        for name in sorted(filenames):
+            if not name.lower().endswith(IMAGE_SUFFIXES):
+                continue
+            count += 1
+            full = os.path.join(dirpath, name)
+            rel = os.path.relpath(full, root)
+            with open(full, "rb") as handle:
+                data = handle.read()
+            if name.lower().endswith(".png"):
+                found = png_metadata_chunks(data)
+            else:
+                found = jpeg_metadata_segments(data)
+            if found:
+                fail("no-image-metadata", rel, None,
+                     f"Embedded metadata found: {', '.join(found)}.\n"
+                     f"    Every committed image is stripped of GPS and EXIF before it lands "
+                     f"(PRD sections 7.3 and 8); the stripping cannot be disabled.\n"
+                     f"    This repository is public, so an unstripped commit publishes the "
+                     f"location permanently in git history.")
+    return count
+
+
+# --------------------------------------------------------------------------------------
+# Rule 10 — the three inline stylesheets are byte-identical
+# --------------------------------------------------------------------------------------
+# Each page carries its own copy of the whole sheet, which AGENTS.md accepts for the static
+# preview. Nothing detected drift: the rules above validate each page independently, so all
+# three could diverge and still pass. A style change is a three-way edit; this says so.
+def check_stylesheets_identical(pages):
+    sheets = {}
+    for path, text in pages.items():
+        blocks = re.findall(r"<style[^>]*>(.*?)</style>", text, re.S)
+        sheets[path] = "".join(blocks)
+
+    if len(set(sheets.values())) <= 1:
+        return
+
+    reference = sheets.get("index.html")
+    diverged = sorted(p for p, css in sheets.items() if css != reference)
+    for path in diverged:
+        fail("stylesheets-identical", path, None,
+             "This page's inline stylesheet differs from index.html's.\n"
+             "    The three pages carry a byte-identical copy of the whole sheet, so any CSS "
+             "change is a three-way edit.\n"
+             f"    Diverging from index.html: {', '.join(diverged)}")
+
+
 def main():
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -297,6 +423,8 @@ def main():
         check_internal_links(path, text, root)
 
     check_robots(pages)
+    check_stylesheets_identical(pages)
+    images = check_image_metadata(root)
 
     if failures:
         print(f"Design rules: {len(failures)} violation(s).\n")
@@ -306,7 +434,8 @@ def main():
               "preferences.\nIf a rule genuinely needs to change, change it there first.")
         return 1
 
-    print(f"Design rules: all checks passed across {len(pages)} pages.")
+    print(f"Design rules: all checks passed across {len(pages)} pages "
+          f"and {images} image(s); the three inline stylesheets are identical.")
     return 0
 
 
