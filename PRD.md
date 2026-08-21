@@ -3,9 +3,9 @@
 - **Project:** `jagong-cmu/personal-website` (public)
 - **Owner:** Jonathan Gong
 - **Status:** Visual direction approved (§9, decisions 27–30). The approved static preview
-  is landed at the repository root and deploys on Vercel for review; the Next.js build in
-  §7 has not started. `README.md` covers the preview.
-- **Date:** 2026-08-18, last revised 2026-08-19
+  is landed at the repository root and is **live in production on `jonathangong.com`**; the
+  Next.js build in §7 has not started. `README.md` covers the preview.
+- **Date:** 2026-08-18, last revised 2026-08-20
 - **Source:** Derived from a four-round requirements interview. Every decision below traces to the log in §13.
 
 ---
@@ -85,7 +85,7 @@ padding, no placeholder, no "more coming". If the owner supplies more they drop 
 layout change (open item, §11.2).
 
 ### 5.4 Blog — admin-managed
-Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. Ships with **one real post** at launch — an empty blog reads as abandoned, a single genuine post reads as a beginning.
+Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. **Ships empty.** Posts are occasional and go up when one is written; there is no post required at launch (decision 34).
 
 ### 5.5 Journey — admin-managed
 Grouped into **eras** — chapters such as childhood, high school, each CMU year. Each entry carries:
@@ -148,12 +148,13 @@ Runs at upload/build time, never per-request:
 Static generation for all public routes. The admin is dynamic and authenticated.
 
 ### 7.5 Domain
-Not yet purchased. `jonathangong.com` was available at $11.25/yr as of 2026-08-18; `.dev` $9.99, `.me` $13.99, `.net` $13.50. `jongong.com` and `jgong.dev` are already taken. Nothing in the build depends on this; it is wired up at the end.
+`jonathangong.com` is registered and connected. Apex and `www` both resolve, and the static
+preview (§11.1, `README.md`) serves from it through Vercel. Verified live 2026-08-20.
 
 ## 8. Privacy and safety
 
 - **The Journey is excluded from search engines**, so it will not surface in a search for the owner's name.
-- **Accepted risk, decided knowingly:** `noindex` does not restrict anyone holding the URL, and scrapers routinely ignore it. There is **no per-entry private switch** in v1 — every uploaded photo is effectively public to anyone who has ever been sent the link. Adding per-entry visibility later is a retrofit; the option was offered and declined.
+- **Accepted risk, and now a live condition rather than a future one.** The Journey is publicly reachable today at `jonathangong.com/journey.html`, carrying real photographs of the owner. `noindex` does not restrict anyone holding the URL, and scrapers routinely ignore it. There is **no per-entry private switch** in v1 — every uploaded photo is effectively public to anyone who has ever been sent the link. Adding per-entry visibility later is a retrofit; the option was offered and declined, and that decision stands.
 - **GPS stripping is automatic and cannot be disabled.**
 - The admin route is `noindex, nofollow` and gated on a single GitHub identity.
 
@@ -194,28 +195,35 @@ size that reads as a portrait rather than an avatar. No border, no shadow, no fi
 
 ## 10. Delivery plan
 
-**Single deployment.** The site does not go to a public URL until the public pages and the admin both work.
+**Two drops.** The public site is live and ships continuously from here; the admin is a
+separate later drop. This supersedes the original single-deployment rule — captain's
+instruction 2026-08-20, exercising the overrule the earlier plan explicitly held open
+(decision 32).
 
-| Stage | Output | Gate |
+| Stage | Output | State |
 |---|---|---|
-| 1 | Three visual directions — front door + one Journey screen, side by side | Owner picks one |
-| 2 | Public site built: front door, /projects, /journey, /blog | Visual review |
-| 3 | Admin built: GitHub auth, editor, image pipeline, commit layer | Working end to end |
-| 4 | Real content in, one blog post written, domain connected | Launch |
+| 1 | Three visual directions — front door + one Journey screen, side by side | **Closed 2026-08-19.** Owner approved plain/white/empty; §9 is the result |
+| 2 | Public site built: front door, /projects, /journey, /blog | **Deployed as the static preview**, on `jonathangong.com`, and shipping continuously. The Next.js build has not started |
+| 3 | Admin built: GitHub auth, editor, image pipeline, commit layer | **Not started.** Now its own drop, with no gate on the public site |
+| 4 | Real content in, domain connected | Domain connected 2026-08-20. Real front-door and Journey content is in; the blog ships empty by choice (decision 34) |
 
-Stage 1 closed on 2026-08-19: the owner approved the plain/white/empty direction after
-four review rounds, and §9 is the result. The approved static preview now deploys on
-Vercel as a **review** URL so that design can be checked on a real screen. That does not
-loosen the rule above — the launch is still stages 2–4 shipping together.
-
-**Assumption carried forward, flagged for overrule:** "live as soon as possible" is satisfied by seeing mockups within a day or two, *not* by an early deployment. Under this reading nothing is lost but an early URL that would not have been shared anyway. If a deployed public site is wanted before the admin exists, this reverts to two drops and stages 2 and 3 ship separately.
+Stage 2's row is the one to read carefully: what is live is the hand-written static preview,
+not the architecture in §7. Public-site work continues to ship straight to production; the
+Next.js replacement lands the same way when it is ready.
 
 ## 11. Open items
 
 ### 11.1 Journey shape — deliberately open
-The precise structure and visual treatment of the Journey is unsettled **on purpose**. It is the part of the site the owner cares most about, and prose is the wrong medium for deciding it. It will be built with defaults — era chapters, date ranges, work entries visually distinguished — and settled by reacting to a real screen. Expect revision here; it is planned for, not a risk.
+The precise structure and visual treatment of the Journey is unsettled **on purpose**. It is the part of the site the owner cares most about, and prose is the wrong medium for deciding it. It was built with defaults — era chapters, date ranges, work entries visually distinguished — and is settled by reacting to a real screen. Expect revision here; it is planned for, not a risk.
 
-Two owner-scoped edits already made to the preview are waiting on that reaction, and neither is an oversight to correct: the Bizybear entry was removed from the Journey and deliberately kept on the front door's Work tab, and the Summer 2026 era was merged from three entries into one, which necessarily costs that era the work/personal type distinction — an entry cannot be both.
+**The placeholders are gone.** The owner's real photographs and captions landed on
+2026-08-20, replacing every grey box, along with the page-top note that described the
+chapters as provisional. The shape is therefore no longer *blocked on content* — it can now
+be judged on a real screen with real pictures in it, which is exactly the reaction this
+section was waiting for. It remains open: what changes next is a reaction to what is there,
+not a guess at what might be.
+
+Three owner-scoped edits already made to the preview are waiting on that reaction, and none is an oversight to correct: the Bizybear entry was removed from the Journey and deliberately kept on the front door's Work tab; the CMU Sophomore era was removed entirely, which drops 996 Ventures from the Journey while keeping it on the Work tab (decision 31, the same pattern as Bizybear); and the Summer 2026 era was merged from three entries into one, which necessarily costs that era the work/personal type distinction — an entry cannot be both.
 
 ### 11.2 Content required from owner
 Supplied 2026-08-19 and now living in the root static preview: work experience, the
@@ -228,7 +236,8 @@ awards section holds three or four without redesign, so any the owner supplies d
 with no layout change.
 
 ### 11.3 Domain
-Deferred by owner. See §7.5.
+**Closed 2026-08-20.** `jonathangong.com` is registered, connected, and serving the site.
+See §7.5.
 
 ## 12. Success criteria
 
@@ -244,9 +253,9 @@ Deferred by owner. See §7.5.
 |---|---|---|
 | 1 | Recruiter-first, personal depth as differentiator | Competing in the CMU pipeline; the human layer is the edge |
 | 2 | Front door / deep room structure | Journey-led buries the professional material; co-equal nav flattens emphasis |
-| 3 | Blog real but occasional; one post at launch | Zero posts reads as abandoned |
+| 3 | ~~Blog real but occasional; one post at launch~~ **SUPERSEDED by 34** | Zero posts reads as abandoned. That reasoning is overruled, not reinterpreted: the site is live with an empty blog and the owner accepts how it reads. The blog stays real and occasional under 34; only the at-launch post is retired |
 | 4 | Admin UI for content | Owner override of a files-only recommendation |
-| 5 | Name: Jonathan Gong; domain deferred | — |
+| 5 | Name: Jonathan Gong; domain deferred | Deferral closed 2026-08-20: `jonathangong.com` is registered and serving the site (§7.5, decision 32) |
 | 6 | True clean slate; old `portfolio` repo ignored entirely | Owner's decision |
 | 7 | Git-backed content, no database | ~6 posts/year does not justify permanent database operation; git gives history, backup, rollback, portability free |
 | 8 | Admin scope: content only | Work/projects/awards change rarely; a CRUD interface for five fields costs more than editing a file |
@@ -260,11 +269,11 @@ Deferred by owner. See §7.5.
 | 16 | GitHub OAuth, single account | Same identity that owns the repo; no stored credential |
 | 17 | *(open — Journey shape, §11.1)* | Settled visually, not in prose |
 | 18 | Awards → own section; no PDF; headshot yes; GPS stripped always | Owner's decisions except GPS, which is non-negotiable. The original "3–4 awards" figure was the owner's recollection; the résumés contain exactly one, so §5.3 now records one confirmed and the section holds more without redesign |
-| 19 | Ship fast, full structure | See §10 assumption |
-| 20 | Single deployment including admin | Owner override of a two-drop recommendation |
+| 19 | Ship fast, full structure | See §10, now two drops (decision 32) |
+| 20 | ~~Single deployment including admin~~ **SUPERSEDED by 32** | Owner override of a two-drop recommendation. Overtaken by events: the public site went live on its own domain before the admin existed, which §10 had already flagged as the condition for reverting to two drops |
 | 21 | Real content, projects seeded from repos | Owner's choice over placeholders |
 | 22 | Three visual directions | Taste is comparative |
-| 23 | Journey and blog in nav from day one | Structure visible; blog seeded with one real post |
+| 23 | Journey and blog in nav from day one | Structure visible; the blog ships empty (decision 34) |
 | 24 | Considered motion | Near-static undersells a photo timeline; showcase-tier reads as a template |
 | 25 | `/projects` own page; About on front door | Owner's decision; About would compete with the Journey |
 | 26 | ~~Light default, dark opt-in~~ **SUPERSEDED by 27** | Owner's decision, 2026-08-19. A portfolio should look the way its author intended on first load; dark stays available as an opt-in |
@@ -272,3 +281,7 @@ Deferred by owner. See §7.5.
 | 28 | Social links as icons; headshot large and circular, head-framed | Owner's instruction 2026-08-19, reviewing plain-v1. Narrow, explicit exceptions to decision 27's no-icons / no-photo-treatment rules; everything else in 27 stands |
 | 29 | Social icons near-black (`#111111`); link accent unchanged | Owner's instruction 2026-08-19, reviewing plain-v2: "the social icon should be black." Scoped to the icons — body links stay accent-coloured and underlined, because links that look like text are a usability regression |
 | 30 | Work entries may link the company name, for confirmed companies only | Owner's instruction 2026-08-19. ScottyLabs and 996 Ventures are confirmed and linked; the remaining companies stay plain text until the owner confirms a URL, because a guessed domain is worse than no link. Styled as an ordinary body link — no icon, no external-link marker, no new colour |
+| 31 | CMU Sophomore era removed from the Journey | Owner's instruction 2026-08-20. Drops 996 Ventures and "Back on campus" from the timeline; 996 Ventures stays on the front door's Work tab, the same pattern as the earlier Bizybear removal (§11.1). The Journey is a curated set of chapters, not a complete record |
+| 32 | **Public site live before the admin exists.** Supersedes 20 | Captain's instruction 2026-08-20. `jonathangong.com` is registered, connected, and serving the static preview in production. §10 had carried the single-deployment rule as an assumption flagged for overrule; this is that overrule, so §10 is now two drops and the admin (stage 3) ships separately |
+| 33 | Committed images must carry no embedded metadata, enforced in CI | Two photos in the first real Journey batch arrived carrying GPS that resolved to real locations, and this repository is public — an unstripped commit publishes them permanently in git history. §7.3 and §8 already required stripping; `check-design-rules.py` now makes it structural rather than dependent on whoever adds the next photo. Parsed at the JPEG-segment / PNG-chunk level, because the bytes `Exif` and `GPS` occur naturally inside compressed scan data and a substring search flags clean files |
+| 34 | **Blog ships empty; posts are occasional, added when written.** Supersedes 3 | Captain's instruction 2026-08-20, retiring the requirement that the site launch with one real post. Decision 3's "zero posts reads as abandoned" rationale is overruled outright: the public site is live at `jonathangong.com` with no posts and that is the accepted state. §5.4 and stage 4 of §10 follow; row 23's "blog seeded with one real post" clause is retired with it |

@@ -6,16 +6,19 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Current stage: static preview at the repo root
 
-`index.html`, `journey.html`, `blog.html`, and `headshot.jpg` at the repo root are an
-owner-approved static preview deployed on Vercel zero-config. They are intentionally
-hand-written, self-contained (inline `<style>`, inline `<script>`, inline SVG), and have
-**no build step, no framework, no package.json, and no dependencies**. Do not add any.
-They will be deleted and replaced by the Next.js app in `PRD.md`, which is the source of
-truth for the eventual architecture — never infer the stack from these files.
+`index.html`, `journey.html`, `blog.html`, `headshot.jpg`, and `journey/` at the repo root are
+an owner-approved static preview, **live in production on `jonathangong.com`** via Vercel
+zero-config. They are intentionally hand-written, self-contained (inline `<style>`, inline
+`<script>`, inline SVG), and have **no build step, no framework, no package.json, and no
+dependencies**. Do not add any. They will be deleted and replaced by the Next.js app in
+`PRD.md`, which is the source of truth for the eventual architecture — never infer the stack
+from these files.
 
 Each page duplicates the whole stylesheet and masthead, so any header or style change is a
 three-way edit. That duplication is accepted for the preview and goes away in the Next.js
-build.
+build; CI's `stylesheets-identical` rule fails if the three inline stylesheets drift apart.
+The mastheads legitimately differ — `index.html` does not wrap its own name in a self-link —
+so they are not checked.
 
 ## Binding visual constraints
 
@@ -26,13 +29,26 @@ type sizes, no shadows/gradients/coloured panels/animation/dark mode. The except
 grants are the inline-SVG social icons — near-black `#111111`, deliberately *not* the link
 colour — and the circular headshot (the site's only non-zero `border-radius`).
 
-Two further prohibitions bind this preview as owner decisions rather than §9 text, so do not
+Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no `<link>`, no
-external CSS/JS) and no phone number anywhere. Make the change asked for and nothing else.
+external CSS/JS), no phone number anywhere, and **no committed image may carry embedded
+metadata** — GPS and EXIF are stripped before an image lands, non-optionally, because this
+repository is public and an unstripped commit publishes the owner's locations permanently into
+git history (`PRD.md` §7.3, §8, decision 33).
+CI's `no-image-metadata` rule fails the build on anything that still carries it, and for the
+static preview the strip is a manual step, done with exactly this command:
+`magick <in> -auto-orient -strip -resize '1600x1600>' -quality 82 <out>`.
+`-auto-orient` must come before `-strip`, because stripping removes the EXIF orientation tag
+and a plain `-strip` therefore leaves a phone photo rotated on the page.
+That invocation produced the seven `journey/` photographs, so it is recorded history rather
+than a suggestion: do not substitute another tool, add flags, or reorder it.
+It is the preview-era procedure only, and `PRD.md` §7.3 owns the eventual build-time `sharp`
+pipeline that subsumes it once the Next.js application lands.
+Make the change asked for and nothing else.
 
 Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, which runs on
 every push and pull request. Run it locally before pushing a visual change; a failure names
-the rule and the offending line. It is a guard, not the specification — `PRD.md` §9 is.
+the rule and where it fired. It is a guard, not the specification — `PRD.md` §9 is.
 
 Outbound links are allowlisted by destination in that script (`ALLOWED_LINK_PREFIXES`), so
 any new absolute `href` fails CI until it is added. The gate is deliberate: a destination

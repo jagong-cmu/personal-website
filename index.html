@@ -11,7 +11,6 @@
   --grey: #6b6b6b;
   --link: #0645ad;
   --icon: #111111;
-  --placeholder: #f0f0f0;
   --measure: 720px;
   --t-meta: 15px;
   --t-body: 17px;
@@ -114,11 +113,9 @@ html.js .panel.is-active { display: block; }
 .jmeta { color: var(--grey); font-size: var(--t-meta); margin: 2px 0 0; }
 .jtext { margin-top: 12px; }
 .photos { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 12px; }
-.ph { background: var(--placeholder); flex: 0 0 auto; max-width: 100%; }
-.ph-3x2 { width: 100%; aspect-ratio: 3 / 2; }
-.ph-2x3 { width: calc(50% - 6px); aspect-ratio: 2 / 3; }
-.ph-1x1 { width: calc(50% - 6px); aspect-ratio: 1 / 1; }
-.ph-4x3 { width: calc(50% - 6px); aspect-ratio: 4 / 3; }
+.photo { flex: 0 0 auto; width: calc(50% - 6px); max-width: 100%; margin: 0; }
+.photo img { display: block; width: 100%; max-width: 100%; height: auto; }
+.photo figcaption { color: var(--grey); font-size: var(--t-meta); margin-top: 8px; }
 
 @media (max-width: 560px) {
   .page { padding: 48px 20px 120px; }
@@ -128,6 +125,7 @@ html.js .panel.is-active { display: block; }
   .tabs { gap: 8px 16px; font-size: var(--t-meta); }
   .jentry.work { padding-left: 16px; }
   .era + .era { margin-top: 72px; }
+  .photo { width: 100%; }
 }
 </style>
 </head>

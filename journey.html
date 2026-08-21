@@ -11,7 +11,6 @@
   --grey: #6b6b6b;
   --link: #0645ad;
   --icon: #111111;
-  --placeholder: #f0f0f0;
   --measure: 720px;
   --t-meta: 15px;
   --t-body: 17px;
@@ -114,11 +113,9 @@ html.js .panel.is-active { display: block; }
 .jmeta { color: var(--grey); font-size: var(--t-meta); margin: 2px 0 0; }
 .jtext { margin-top: 12px; }
 .photos { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 12px; }
-.ph { background: var(--placeholder); flex: 0 0 auto; max-width: 100%; }
-.ph-3x2 { width: 100%; aspect-ratio: 3 / 2; }
-.ph-2x3 { width: calc(50% - 6px); aspect-ratio: 2 / 3; }
-.ph-1x1 { width: calc(50% - 6px); aspect-ratio: 1 / 1; }
-.ph-4x3 { width: calc(50% - 6px); aspect-ratio: 4 / 3; }
+.photo { flex: 0 0 auto; width: calc(50% - 6px); max-width: 100%; margin: 0; }
+.photo img { display: block; width: 100%; max-width: 100%; height: auto; }
+.photo figcaption { color: var(--grey); font-size: var(--t-meta); margin-top: 8px; }
 
 @media (max-width: 560px) {
   .page { padding: 48px 20px 120px; }
@@ -128,6 +125,7 @@ html.js .panel.is-active { display: block; }
   .tabs { gap: 8px 16px; font-size: var(--t-meta); }
   .jentry.work { padding-left: 16px; }
   .era + .era { margin-top: 72px; }
+  .photo { width: 100%; }
 }
 </style>
 </head>
@@ -159,43 +157,21 @@ html.js .panel.is-active { display: block; }
   </header>
 
   <main>
-    <p class="note" style="margin-bottom:72px">Placeholder chapters and photographs. The structure of this page is still being decided.</p>
 
-    <section class="era">
-      <h2 class="era-title">CMU Sophomore</h2>
-      <p class="era-range">August 2026 &ndash; Present</p>
-      <article class="jentry work">
-        <p class="jlabel">Work</p>
-        <h3 class="jtitle">Founding 996 Ventures</h3>
-        <p class="jmeta">Pittsburgh, PA &middot; May 2026 &ndash; Present</p>
-        <p class="jtext">Started a venture studio with friends and took the CTO seat. Placeholder narrative.</p>
-        <div class="photos">
-          <div class="ph ph-3x2"></div>
-        </div>
-      </article>
-      <article class="jentry">
-        <h3 class="jtitle">Back on campus</h3>
-        <p class="jmeta">August 2026 &ndash; Present</p>
-        <p class="jtext">Second year at Carnegie Mellon. Placeholder narrative.</p>
-        <div class="photos">
-          <div class="ph ph-2x3"></div>
-          <div class="ph ph-4x3"></div>
-        </div>
-      </article>
-
-    </section>
     <section class="era">
       <h2 class="era-title">Summer 2026 in San Francisco</h2>
       <p class="era-range">June 2026 &ndash; August 2026</p>
       <article class="jentry">
-        <p class="jtext">It opened with first place at the YC &times; Moss hackathon, won with ManuAI against more than 200 competitors. July and August went to AI engineering at Corgi: an internal MCP server, a React Native iOS app, and a support chatbot. The rest of it was weekends, walks, and the people who made the summer. Placeholder narrative.</p>
+        <p class="jtext">It opened with first place at the YC &times; Moss hackathon, won with ManuAI against more than 200 competitors. July and August went to AI engineering at Corgi: an internal MCP server, a React Native iOS app, and a support chatbot. The rest of it was weekends, walks, and the people who made the summer.</p>
         <div class="photos">
-          <div class="ph ph-3x2"></div>
-          <div class="ph ph-4x3"></div>
-          <div class="ph ph-1x1"></div>
-          <div class="ph ph-2x3"></div>
-          <div class="ph ph-2x3"></div>
-          <div class="ph ph-3x2"></div>
+          <figure class="photo">
+            <img src="journey/summer-yc-hackathon-win.jpg" width="1600" height="1066" loading="eager" alt="Five people lined up in front of an orange acoustic wall at a hackathon prize ceremony, four of them holding small white prize boxes.">
+            <figcaption>Won a YC Hackathon (my first ever win)!</figcaption>
+          </figure>
+          <figure class="photo">
+            <img src="journey/summer-corgi-internship.jpg" width="1200" height="1600" loading="eager" alt="Jonathan holding a corgi in an office at night, with desks, a whiteboard, and office chairs behind him.">
+            <figcaption>Interning at Corgi in SF.</figcaption>
+          </figure>
         </div>
       </article>
 
@@ -206,21 +182,23 @@ html.js .panel.is-active { display: block; }
       <article class="jentry">
         <h3 class="jtitle">First semester</h3>
         <p class="jmeta">August 2025 &ndash; December 2025</p>
-        <p class="jtext">Moving to Pittsburgh and starting Information Systems. Placeholder narrative.</p>
+        <p class="jtext">Moving to Pittsburgh and starting Information Systems.</p>
         <div class="photos">
-          <div class="ph ph-3x2"></div>
-          <div class="ph ph-1x1"></div>
-          <div class="ph ph-1x1"></div>
+          <figure class="photo">
+            <img src="journey/cmu-freshman-first-hackathon.jpg" width="1600" height="1200" loading="lazy" alt="Two students smiling in a crowded gymnasium hung with Carnegie Mellon banners, an open laptop showing their project on the table behind them.">
+            <figcaption>Participated in my first hackathon.</figcaption>
+          </figure>
+          <figure class="photo">
+            <img src="journey/cmu-freshman-baseball.jpg" width="1600" height="1200" loading="lazy" alt="Two teammates in white pinstriped baseball jerseys under the wooden roof of a dugout.">
+            <figcaption>Joined the CMU Baseball team.</figcaption>
+          </figure>
         </div>
       </article>
       <article class="jentry work">
         <p class="jlabel">Work</p>
         <h3 class="jtitle">Go-to-market at ScottyLabs</h3>
         <p class="jmeta">Pittsburgh, PA &middot; January 2026 &ndash; Present</p>
-        <p class="jtext">Research with 50+ users, three launches, and a thousand signups. Placeholder narrative.</p>
-        <div class="photos">
-          <div class="ph ph-4x3"></div>
-        </div>
+        <p class="jtext">Research with 50+ users, three launches, and a thousand signups.</p>
       </article>
 
     </section>
@@ -230,11 +208,16 @@ html.js .panel.is-active { display: block; }
       <article class="jentry">
         <h3 class="jtitle">Rancho Cucamonga, CA</h3>
         <p class="jmeta">2021 &ndash; 2025</p>
-        <p class="jtext">Four years at home in Southern California. Placeholder narrative.</p>
+        <p class="jtext">Four years at home in Southern California.</p>
         <div class="photos">
-          <div class="ph ph-3x2"></div>
-          <div class="ph ph-2x3"></div>
-          <div class="ph ph-4x3"></div>
+          <figure class="photo">
+            <img src="journey/highschool-prom-king.jpg" width="1200" height="1600" loading="lazy" alt="Four students in suits at a prom held in a darkened hall; the one in the middle wears a crown and a sash.">
+            <figcaption>Won Prom King.</figcaption>
+          </figure>
+          <figure class="photo">
+            <img src="journey/highschool-clubs-fbla.jpg" width="1200" height="1600" loading="lazy" alt="Three students in suits standing in a school auditorium, each holding a small award plaque.">
+            <figcaption>President of a few clubs and did FBLA</figcaption>
+          </figure>
         </div>
       </article>
 
@@ -245,11 +228,11 @@ html.js .panel.is-active { display: block; }
       <article class="jentry">
         <h3 class="jtitle">Growing up</h3>
         <p class="jmeta">Before 2021</p>
-        <p class="jtext">Childhood, family, and the years before any of this. Placeholder narrative.</p>
+        <p class="jtext">Childhood, family, and the years before any of this.</p>
         <div class="photos">
-          <div class="ph ph-1x1"></div>
-          <div class="ph ph-1x1"></div>
-          <div class="ph ph-3x2"></div>
+          <figure class="photo">
+            <img src="journey/earlier-growing-up.jpg" width="1200" height="1600" loading="lazy" alt="A young boy grinning at an outdoor cafe table on a busy pedestrian street lined with shopfronts.">
+          </figure>
         </div>
       </article>
 

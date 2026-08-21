@@ -48,3 +48,6 @@ __pycache__/
 
 # generated image derivatives
 /public/_derived/
+
+# agent tooling local state
+.gstack/
