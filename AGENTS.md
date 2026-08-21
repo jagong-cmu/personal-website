@@ -30,8 +30,9 @@ grants to those are the inline-SVG social icons — near-black `#111111`, delibe
 the link colour — and the circular headshot (the site's only non-zero `border-radius`).
 
 Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
-expect to find them there: **zero external requests** (no web fonts, no CDN, no `<link>`, no
-external CSS/JS), no phone number anywhere, and **no committed image may carry embedded
+expect to find them there: **zero external requests** (no web fonts, no CDN, no external
+CSS/JS — a `<link>` is permitted only for a same-origin canonical or icon, decision 37),
+no phone number anywhere, and **no committed image may carry embedded
 metadata** — GPS and EXIF are stripped before an image lands, non-optionally, because this
 repository is public and an unstripped commit publishes the owner's locations permanently into
 git history (`PRD.md` §7.3, §8, decision 33).
@@ -44,11 +45,20 @@ That invocation produced the seven `journey/` photographs, so it is recorded his
 than a suggestion: do not substitute another tool, add flags, or reorder it.
 It is the preview-era procedure only, and `PRD.md` §7.3 owns the eventual build-time `sharp`
 pipeline that subsumes it once the Next.js application lands.
+The root icons are the one image pair it does not describe — `favicon.ico` (16/32/48) and
+`apple-touch-icon.png` (180x180) are cropped from `headshot.jpg` tighter than the on-page
+circle, because a head-and-shoulders photo is unreadable at 16px. They were produced with
+`magick headshot.jpg -auto-orient -strip -crop 440x440+115+55 +repage` into a working file,
+then resized; the `-auto-orient` before `-strip` ordering is the same and non-negotiable.
+Regenerate them only if the headshot itself changes.
 Make the change asked for and nothing else.
 
 Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, which runs on
 every push and pull request. Run it locally before pushing a visual change; a failure names
 the rule and where it fired. It is a guard, not the specification — `PRD.md` §9 is.
+`.github/scripts/test-design-rules.py` runs beside it in the same job and pins the parts of
+the checker that are easy to loosen by accident — chiefly which `<link>` elements
+`zero-external-requests` permits (`PRD.md` decision 37). Run both.
 
 Outbound links are allowlisted by destination in that script (`ALLOWED_LINK_PREFIXES`), so
 any new absolute `href` fails CI until it is added. The gate is deliberate: a destination

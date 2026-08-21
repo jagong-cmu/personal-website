@@ -1,0 +1,8 @@
+# journey.html is deliberately NOT disallowed here. A disallowed page is never fetched, so
+# its `noindex` meta tag is never read, and the bare URL can still be indexed from inbound
+# links. Leaving it crawlable is what makes the exclusion hold (PRD section 8).
+
+User-agent: *
+Allow: /
+
+Sitemap: https://jonathangong.com/sitemap.xml
