@@ -66,10 +66,16 @@ because they are long-form and scroll on their own.
 All content is MDX or structured data files committed to the repository. There is no database anywhere in this system.
 
 ### 5.1 Work experience — file-edited
-Company, role, date range, and two to three lines written as outcomes with concrete numbers wherever they exist. Terse listings undersell; metrics are what make this section work.
+Company, role, date range, and one to two sentences of prose describing the work. No bullet
+lists and no required metrics: the entry is a short qualitative description, and an entry with
+little to say is allowed to be short rather than padded. This rewrites the earlier "two to three
+lines written as outcomes with concrete numbers" rule on the owner's explicit instruction of
+2026-08-20 (decision 35), which also removed the numbers already on the page.
 
 ### 5.2 Projects — file-edited, hand-curated
-Name, one-line summary, longer description, tech, links (repo, live). The set is now curated and settled — the five projects carried by the root static preview (§11.2) — which supersedes the earlier guess at which public repositories would be featured.
+Name, one-line summary, description, tech, links (repo, live). The description takes the same form
+as §5.1 — one to two sentences of prose, no bullet lists, no required metrics (decision 35).
+The set is now curated and settled — the five projects carried by the root static preview (§11.2) — which supersedes the earlier guess at which public repositories would be featured.
 
 ### 5.3 Awards — file-edited
 Own section, one tab. Each entry: name, granting body, year.
@@ -172,6 +178,10 @@ Hard rules, stated as prohibitions because that is how this direction fails:
   no variable-width tricks, no letterspaced small caps. One family, two or three sizes.
 - **Negative space is the design.** Generous margins and large gaps are the point; if a
   screen looks sparse, it is correct. Do not fill space.
+  - **Exception, owner's instruction 2026-08-20:** the measure is `880px`, widened from
+    `720px`, capped at `900px` because the About paragraph is the readability constraint.
+    "Do not fill space" is set aside for the single `--measure` token and nothing else
+    (decision 36). Do not narrow it back as a correction.
 - **No decoration.** No cards, no shadows, no gradients, no borders-as-styling, no
   coloured panels, no badges, no signature motif.
   - **Exception, owner's instruction 2026-08-19:** social links are monochrome inline-SVG
@@ -261,7 +271,7 @@ See §7.5.
 | 8 | Admin scope: content only | Work/projects/awards change rarely; a CRUD interface for five fields costs more than editing a file |
 | 9 | Journey grouped by era | Owner's choice over flat stream and expandable spine |
 | 10 | Journey noindexed; no per-entry privacy | Owner's choice; consequence accepted in §8 |
-| 11 | Substantive work entries (2–3 lines, metrics) | Terse listings tell a recruiter nothing |
+| 11 | ~~Substantive work entries (2–3 lines, metrics)~~ **SUPERSEDED by 35** | Terse listings tell a recruiter nothing. That reasoning is overruled, not reinterpreted: both the bullet structure and the numbers are gone |
 | 12 | Projects hand-curated | Public repos include scratch work; auto-sync weakens the page |
 | 13 | Editorial-warm visual direction | Photographs need editorial minimalism, not utilitarian minimalism |
 | 14 | Images in repo | Blob exhausted; removes every external quota and dependency |
@@ -285,3 +295,5 @@ See §7.5.
 | 32 | **Public site live before the admin exists.** Supersedes 20 | Captain's instruction 2026-08-20. `jonathangong.com` is registered, connected, and serving the static preview in production. §10 had carried the single-deployment rule as an assumption flagged for overrule; this is that overrule, so §10 is now two drops and the admin (stage 3) ships separately |
 | 33 | Committed images must carry no embedded metadata, enforced in CI | Two photos in the first real Journey batch arrived carrying GPS that resolved to real locations, and this repository is public — an unstripped commit publishes them permanently in git history. §7.3 and §8 already required stripping; `check-design-rules.py` now makes it structural rather than dependent on whoever adds the next photo. Parsed at the JPEG-segment / PNG-chunk level, because the bytes `Exif` and `GPS` occur naturally inside compressed scan data and a substring search flags clean files |
 | 34 | **Blog ships empty; posts are occasional, added when written.** Supersedes 3 | Captain's instruction 2026-08-20, retiring the requirement that the site launch with one real post. Decision 3's "zero posts reads as abandoned" rationale is overruled outright: the public site is live at `jonathangong.com` with no posts and that is the accepted state. §5.4 and stage 4 of §10 follow; row 23's "blog seeded with one real post" clause is retired with it |
+| 35 | **Work and project entries are brief prose with no metrics.** Supersedes 11 | Owner's explicit instruction 2026-08-20, against firstmate's recommendation to keep the figures. Every three-bullet `entry-body` list in Work and Projects became one to two sentences, and the numeric performance figures were removed outright — signup counts, ambassador and user counts, bug and turnaround reductions, launch and iteration counts, analytics and simulation counts, and the "200+ competitors" figure inside the ManuAI project entry. Nothing was invented to replace them and short entries stay short. Scoped to Work and Projects: the Awards panel keeps "1st Place" and "200+ competitors", and `entry-meta` lines are unaffected. §5.1 and §5.2 are rewritten to match |
+| 36 | **The measure widens from 720px to 880px.** Narrowly overrides §9 for this token only | Owner's instruction 2026-08-20: "a little bit more, not too much". 720px gave roughly 70 characters at 17px and left the front door feeling narrow; 880px is about 88 characters and still leaves roughly 280px of margin each side at 1440px. Hard cap 900px — the About paragraph is the readability constraint, and past it the line grows harder to track back. A single `--measure` token, not a second prose-vs-entry measure. §9's "Do not fill space" is set aside for this one token and nothing else: the negative-space principle otherwise stands in full |

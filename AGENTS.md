@@ -26,8 +26,8 @@ so they are not checked.
 designs for unrequested "improvement". Before changing anything visual, read §9. The short
 form: pure `#FFFFFF` background, system font stack only (no Google Fonts), at most three
 type sizes, no shadows/gradients/coloured panels/animation/dark mode. The exceptions §9
-grants are the inline-SVG social icons — near-black `#111111`, deliberately *not* the link
-colour — and the circular headshot (the site's only non-zero `border-radius`).
+grants to those are the inline-SVG social icons — near-black `#111111`, deliberately *not*
+the link colour — and the circular headshot (the site's only non-zero `border-radius`).
 
 Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no `<link>`, no
