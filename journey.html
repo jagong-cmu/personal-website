@@ -102,9 +102,16 @@ html.js .panel.is-active { display: block; }
 .entry-title { font-weight: 600; margin: 0; }
 /* Company mark in a Work entry. Full colour on the owner's instruction of 2026-08-21
    (PRD section 9 exception, decision 41). Fitted to a 20px band so it sits inside the
-   title's line box and leaves the vertical rhythm untouched; width runs free so no mark
-   is distorted. No box, border, or background — the exception covers the mark only. */
-.entry-logo { height: 20px; width: auto; max-width: 36px; vertical-align: -0.24em; margin-right: 8px; }
+   title's line box and leaves the vertical rhythm untouched. No box, border, or
+   background — the exception covers the mark only.
+   The 43px slot is reserved on the Work title, not on the image, so all five company
+   names share one left edge and the entry with no mark holds the same indent instead of
+   collapsing to the panel edge (decision 42). Sized from the widest mark (35px) plus the
+   8px gap. `object-fit: contain` keeps each mark's own aspect ratio inside the slot,
+   left-aligned; nothing is stretched or cropped. Scoped to Work — the Projects panel
+   shares .entry-title and must not gain a gutter. */
+[data-panel="work"] .entry-title { padding-left: 43px; }
+.entry-logo { width: 35px; height: 20px; object-fit: contain; object-position: left center; vertical-align: -0.24em; margin-left: -43px; margin-right: 8px; }
 .entry-meta { color: var(--grey); font-size: var(--t-meta); margin: 2px 0 0; }
 .entry-body { margin-top: 16px; }
 .entry-links { font-size: var(--t-meta); margin-top: 12px; }

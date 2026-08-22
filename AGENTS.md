@@ -35,7 +35,11 @@ That last one is an owner override of "no badges" and of the palette limit, chos
 monochrome treatment firstmate recommended: do not desaturate it back, and do not read brand
 colour in Work as licence anywhere else. Nothing may be drawn around a mark, and a company
 whose logo source the owner has not confirmed carries none — Bizybear's empty slot is
-correct (decision 30 covers logo sources as it covers links).
+correct (decision 30 covers logo sources as it covers links). The marks sit in a shared
+fixed-width slot reserved on the Work title, so all five company names keep one left edge and
+the unmarked entry holds the same indent — a ragged left edge is a defect, not the look of an
+absent mark (decision 42). That slot is scoped to `[data-panel="work"]`: the Projects panel
+shares `.entry-title` and must not gain a gutter.
 
 Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no external
