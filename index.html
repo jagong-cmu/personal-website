@@ -184,7 +184,6 @@ html.js .panel.is-active { display: block; }
       <a href="#about" data-tab="about">About</a>
       <a href="#work" data-tab="work">Work</a>
       <a href="#projects" data-tab="projects">Projects</a>
-      <a href="#awards" data-tab="awards">Awards</a>
       <a href="journey.html">Journey</a>
       <a href="blog.html">Blog</a>
     </nav>
@@ -206,7 +205,7 @@ html.js .panel.is-active { display: block; }
       </article>
 
       <article class="entry">
-        <p class="entry-title">Corgi &mdash; AI Engineer</p>
+        <p class="entry-title"><a href="https://www.corgi.insure/">Corgi</a> &mdash; AI Engineer</p>
         <p class="entry-meta">San Francisco, CA &middot; July 2026 &ndash; August 2026</p>
         <p class="entry-body">Developed an internal MCP server that opened company-wide tool integrations to every team, plus a React Native iOS app for Corgi Cafe with Square order integration. Also built an internal chatbot that handles employee support across the existing integrations.</p>
       </article>
@@ -218,7 +217,7 @@ html.js .panel.is-active { display: block; }
       </article>
 
       <article class="entry">
-        <p class="entry-title">Scurry &mdash; AI Consultant</p>
+        <p class="entry-title"><a href="https://scurryconsulting.com/">Scurry</a> &mdash; AI Consultant</p>
         <p class="entry-meta">Remote &middot; June 2026 &ndash; July 2026</p>
         <p class="entry-body">Developed internal tooling that streamlined client onboarding and cut turnaround time, and worked directly with clients to translate business goals into automated AI systems, including workflow automations inside their HubSpot CRMs.</p>
       </article>
@@ -266,21 +265,13 @@ html.js .panel.is-active { display: block; }
 
     </section>
 
-    <section class="panel" data-panel="awards" aria-label="Awards">
-      <article class="entry">
-        <p class="entry-title">1st Place &mdash; Y Combinator &times; Moss Conversational AI Hackathon</p>
-        <p class="entry-meta">June 2026 &middot; Sponsored by Unsiloed AI (YC F25)</p>
-        <p class="entry-body">Won against 200+ competitors with ManuAI, an offline multimodal voice assistant for factory operators.</p>
-      </article>
-    </section>
-
   </main>
 
 </div>
 
 <script>
 (function () {
-  var TABS = ["about", "work", "projects", "awards"];
+  var TABS = ["about", "work", "projects"];
   var panels = document.querySelectorAll("[data-panel]");
   var links = document.querySelectorAll("[data-tab]");
 

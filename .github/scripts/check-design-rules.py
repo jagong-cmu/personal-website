@@ -28,6 +28,8 @@ ALLOWED_LINK_PREFIXES = (
     # listed: an unlinked company name is correct, a guessed domain is not.
     "https://scottylabs.org",
     "https://996ventures.com",
+    "https://www.corgi.insure",
+    "https://scurryconsulting.com",
     "mailto:",
 )
 
