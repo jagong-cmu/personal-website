@@ -59,12 +59,17 @@ circle, because a head-and-shoulders photo is unreadable at 16px. They were prod
 `magick headshot.jpg -auto-orient -strip -crop 440x440+115+55 +repage` into a working file,
 then resized; the `-auto-orient` before `-strip` ordering is the same and non-negotiable.
 Regenerate them only if the headshot itself changes.
-The `logos/` company marks are the other exception: they are third-party assets used
-unaltered, so the strip command applies (`magick <in> -auto-orient -strip ... -quality 82 <out>`,
-same flag order) but the resize geometry is the display size, not `1600x1600>`. Two carried a
-file-level defect that had to be corrected before they were usable, and the corrections are
-recorded in decision 41 rather than repeated here. Do not recolour, crop, or restyle a mark:
-using it as published is what keeps nominative use of an employer's logo straightforward.
+The `logos/` company marks are the other exception, and they split by file type. The two rasters
+(`996-ventures.png`, `scottylabs.png`) take the strip command with the same flag order
+(`magick <in> -auto-orient -strip ... -quality 82 <out>`), but the resize geometry is the display
+size, not `1600x1600>`. The two SVGs (`corgi.svg`, `scurry.svg`) are text files, so `magick` is
+the wrong tool for them and `no-image-metadata` does not reach them either — the checker's
+`IMAGE_SUFFIXES` is `.jpg`/`.jpeg`/`.png` only, so nothing in CI polices an SVG. Clear a committed
+SVG by reading it: no `<metadata>` block, no generator comment, and no external `href`, which
+zero external requests would forbid anyway. Two marks carried a file-level defect that had to be
+corrected before they were usable, and the corrections are recorded in decision 41 rather than
+repeated here. Do not recolour, crop, or restyle a mark: using it as published is what keeps
+nominative use of an employer's logo straightforward.
 Make the change asked for and nothing else.
 
 Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, which runs on
