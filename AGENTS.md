@@ -29,7 +29,13 @@ designs for unrequested "improvement". Before changing anything visual, read §9
 form: pure `#FFFFFF` background, system font stack only (no Google Fonts), at most three
 type sizes, no shadows/gradients/coloured panels/animation/dark mode. The exceptions §9
 grants to those are the inline-SVG social icons — near-black `#111111`, deliberately *not*
-the link colour — and the circular headshot (the site's only non-zero `border-radius`).
+the link colour — the circular headshot (the site's only non-zero `border-radius`), and the
+**full-colour company logos in the Work panel** (`logos/`, `.entry-logo`, decision 41).
+That last one is an owner override of "no badges" and of the palette limit, chosen over a
+monochrome treatment firstmate recommended: do not desaturate it back, and do not read brand
+colour in Work as licence anywhere else. Nothing may be drawn around a mark, and a company
+whose logo source the owner has not confirmed carries none — Bizybear's empty slot is
+correct (decision 30 covers logo sources as it covers links).
 
 Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no external
@@ -53,6 +59,12 @@ circle, because a head-and-shoulders photo is unreadable at 16px. They were prod
 `magick headshot.jpg -auto-orient -strip -crop 440x440+115+55 +repage` into a working file,
 then resized; the `-auto-orient` before `-strip` ordering is the same and non-negotiable.
 Regenerate them only if the headshot itself changes.
+The `logos/` company marks are the other exception: they are third-party assets used
+unaltered, so the strip command applies (`magick <in> -auto-orient -strip ... -quality 82 <out>`,
+same flag order) but the resize geometry is the display size, not `1600x1600>`. Two carried a
+file-level defect that had to be corrected before they were usable, and the corrections are
+recorded in decision 41 rather than repeated here. Do not recolour, crop, or restyle a mark:
+using it as published is what keeps nominative use of an employer's logo straightforward.
 Make the change asked for and nothing else.
 
 Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, which runs on

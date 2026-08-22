@@ -130,6 +130,11 @@ html.js .panel.is-active { display: block; }
 
 .entry > * + * { margin-top: 0; }
 .entry-title { font-weight: 600; margin: 0; }
+/* Company mark in a Work entry. Full colour on the owner's instruction of 2026-08-21
+   (PRD section 9 exception, decision 41). Fitted to a 20px band so it sits inside the
+   title's line box and leaves the vertical rhythm untouched; width runs free so no mark
+   is distorted. No box, border, or background — the exception covers the mark only. */
+.entry-logo { height: 20px; width: auto; max-width: 36px; vertical-align: -0.24em; margin-right: 8px; }
 .entry-meta { color: var(--grey); font-size: var(--t-meta); margin: 2px 0 0; }
 .entry-body { margin-top: 16px; }
 .entry-links { font-size: var(--t-meta); margin-top: 12px; }
@@ -199,25 +204,25 @@ html.js .panel.is-active { display: block; }
     <section class="panel" data-panel="work" aria-label="Work">
 
       <article class="entry">
-        <p class="entry-title"><a href="https://996ventures.com">996 Ventures</a> &mdash; Co-Founder and CTO</p>
+        <p class="entry-title"><img class="entry-logo" src="logos/996-ventures.png" alt="" width="70" height="40"><a href="https://996ventures.com">996 Ventures</a> &mdash; Co-Founder and CTO</p>
         <p class="entry-meta">Pittsburgh, PA &middot; May 2026 &ndash; Present</p>
         <p class="entry-body">Built the venture studio&rsquo;s full-stack site in React, TypeScript, and TanStack Start with server-side rendering on Cloudflare Workers, including a serverless submission pipeline using TanStack server functions, Zod validation, and the Google Sheets API. Designed the motion-driven UI (Motion, Radix, Tailwind) around a custom intro loader and a geometric component system.</p>
       </article>
 
       <article class="entry">
-        <p class="entry-title"><a href="https://www.corgi.insure/">Corgi</a> &mdash; AI Engineer</p>
+        <p class="entry-title"><img class="entry-logo" src="logos/corgi.svg" alt="" width="1785" height="1785"><a href="https://www.corgi.insure/">Corgi</a> &mdash; AI Engineer</p>
         <p class="entry-meta">San Francisco, CA &middot; July 2026 &ndash; August 2026</p>
         <p class="entry-body">Developed an internal MCP server that opened company-wide tool integrations to every team, plus a React Native iOS app for Corgi Cafe with Square order integration. Also built an internal chatbot that handles employee support across the existing integrations.</p>
       </article>
 
       <article class="entry">
-        <p class="entry-title"><a href="https://scottylabs.org">ScottyLabs</a> &mdash; Head of Go-To-Market</p>
+        <p class="entry-title"><img class="entry-logo" src="logos/scottylabs.png" alt="" width="37" height="37"><a href="https://scottylabs.org">ScottyLabs</a> &mdash; Head of Go-To-Market</p>
         <p class="entry-meta">Pittsburgh, PA &middot; January 2026 &ndash; Present</p>
         <p class="entry-body">Synthesized user research into product design iterations across software projects, and kept cross-functional teams of engineers, designers, and marketers aligned on shared OKRs each sprint. Led project launches and the marketing funnels that drove signups.</p>
       </article>
 
       <article class="entry">
-        <p class="entry-title"><a href="https://scurryconsulting.com/">Scurry</a> &mdash; AI Consultant</p>
+        <p class="entry-title"><img class="entry-logo" src="logos/scurry.svg" alt="" width="26" height="20"><a href="https://scurryconsulting.com/">Scurry</a> &mdash; AI Consultant</p>
         <p class="entry-meta">Remote &middot; June 2026 &ndash; July 2026</p>
         <p class="entry-body">Developed internal tooling that streamlined client onboarding and cut turnaround time, and worked directly with clients to translate business goals into automated AI systems, including workflow automations inside their HubSpot CRMs.</p>
       </article>

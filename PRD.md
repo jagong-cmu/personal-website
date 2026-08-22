@@ -71,6 +71,12 @@ little to say is allowed to be short rather than padded. This rewrites the earli
 lines written as outcomes with concrete numbers" rule on the owner's explicit instruction of
 2026-08-20 (decision 35), which also removed the numbers already on the page.
 
+An entry may also carry the **company's own logo** beside the company name, in full colour
+(§9's 2026-08-21 exception, decision 41). It is optional by construction: a company whose
+logo URL the owner has not confirmed carries none, and decision 30's no-guessed-URLs rule
+applies to a logo source exactly as it does to a link. An uneven column is the correct
+outcome, not a gap to fill with a placeholder or an initial.
+
 ### 5.2 Projects — file-edited, hand-curated
 Name, one-line summary, description, tech, links (repo, live). The description takes the same form
 as §5.1 — one to two sentences of prose, no bullet lists, no required metrics (decision 35).
@@ -203,12 +209,26 @@ Hard rules, stated as prohibitions because that is how this direction fails:
   - **Exception, owner's instruction 2026-08-19:** the headshot is a circular crop, framed
     on the head, and noticeably larger than a thumbnail. This is the one shaped element
     on the site.
+  - **Exception, owner's instruction 2026-08-21:** a Work entry may carry the company's
+    own logo beside the company name, in **full colour**. This sets aside "no badges" for
+    those marks only. Firstmate escalated the conflict with this section and offered a
+    monochrome treatment matching the `#111111` social icons; the owner reviewed it and
+    chose full colour anyway, so brand colour in the Work panel is the instruction, not an
+    oversight. Do not desaturate it, do not add a greyscale hover, and do not read it as
+    licence to loosen this section anywhere else — the mark itself is the exception, and
+    nothing may be drawn around it: no card, border, shadow, panel, or background. See
+    decision 41.
 - **Colour is black text on white**, plus grey for metadata. At most one restrained accent,
   used for links only. No accent backgrounds.
   - **Exception, owner's instruction 2026-08-19:** the three social icons are near-black
     (`#111111`), not accent-coloured. The accent itself is untouched — body links stay
     visibly link-coloured. Do not "unify" the two: links that read as plain text are a
     usability regression, not a simplification.
+  - **Exception, owner's instruction 2026-08-21:** company logos in the Work panel carry
+    their own brand colours, which are therefore the only colours on the site outside black
+    text, grey metadata, and the link accent. The exception is scoped to those marks: it
+    grants no accent background, no new text colour, and nothing to any other element. See
+    decision 41.
 - **Motion is near-zero.** A plain instant tab switch is the default. Nothing animates in on
   scroll. This supersedes decision 24.
 - **No theme toggle.** The site is white. Dark mode is dropped for now; this supersedes
@@ -316,3 +336,4 @@ See §7.5.
 | 38 | The site carries a favicon, per-page metadata, `robots.txt`, and `sitemap.xml` | Owner's instruction 2026-08-21. The live site returned 404 for `/favicon.ico`, `/robots.txt`, and `/sitemap.xml`, and its `<head>` held only charset, viewport, and title, so search results and social previews had nothing to work with. The icons are derived from `headshot.jpg`, cropped tighter to the face because a head-and-shoulders photo turns to mush at 16px, and land at the root convention paths so they work with or without a `<link>` tag. Descriptions are per page and distinct. `journey.html` is excluded from the promotion — it keeps its `noindex`, gets no canonical, no Open Graph, and no structured data, and is left out of the sitemap (§8). It is deliberately **not** `Disallow`ed in `robots.txt`: a disallowed page is never crawled, so its `noindex` is never read and the bare URL can still be indexed from inbound links, which would make the exclusion weaker rather than stronger. Canonical URLs name the apex because apex and `www` both serve 200 (§7.5). `sameAs` lists only the GitHub and LinkedIn URLs already confirmed in `ALLOWED_LINK_PREFIXES`; decision 30's no-guessed-URLs rule applies to structured data too. No visible pixel changes except the browser tab icon. §7.6 carries this contract forward as a requirement of the Next.js build |
 | 39 | **Awards section removed; the one award lives in the ManuAI project entry.** Supersedes 18 | Owner's instruction 2026-08-21. The award is only legible next to the thing that won it, and a tab holding a single entry advertised its own thinness. The ManuAI entry already carried the sentence, so this was a deletion, not a migration: the `#awards` tab, its panel, and its entry in the front door's `TABS` array are gone from `index.html`, and the dangling `Awards` link is gone from the `journey.html` and `blog.html` mastheads. "200+ competitors" dies with the Awards panel and is not relocated — decision 35 had already removed the other numeric claims there. The About paragraph keeps its own narrative phrasing of the same result, deliberately: decision 35 never scoped About. §3, §4, §5.2, the removed Awards section (Blog and Journey renumbered to §5.3/§5.4) and §11.2 follow; a stale `#awards` bookmark falls back to About, which is the routing that was already there |
 | 40 | Corgi and Scurry confirmed as linkable companies | Owner's confirmation 2026-08-21, logged as decision 30 requires. `https://www.corgi.insure/` and `https://scurryconsulting.com/`, both reachable at the time of confirmation and added to `ALLOWED_LINK_PREFIXES` exactly as given — Corgi's host carries `www.` and Scurry's does not, and neither was normalised into the other's shape. The company name is linked, not the role, matching 996 Ventures and ScottyLabs. Bizybear stays plain text: no URL has been confirmed for it, and decision 30 makes an unlinked name the correct outcome rather than a gap to fill |
+| 41 | **Work-entry company logos are full colour, overriding §9's "no badges" and palette limit for those marks only** | Owner's instruction 2026-08-21. Firstmate escalated the conflict with §9 and recommended monochrome marks matching the `#111111` social icons; the owner reviewed that conflict and chose full colour, so this row records the override the same way decision 36 records the measure's. Four of five entries carry a mark — 996 Ventures, Corgi, ScottyLabs, and Scurry, each from a source the owner confirmed and each committed to `logos/` and referenced relatively, because zero external requests is not relaxed and a company's asset is never hotlinked. **Bizybear carries none**: no logo URL has been confirmed for it, decision 30 forbids guessing one, and the owner approved the empty slot — no placeholder, initial, or generic glyph stands in for it. The marks are used unaltered, which is what keeps nominative use of an employer's logo on a personal CV site straightforward; the only file-level changes are removing empty transparent canvas from the 996 Ventures wordmark (a 637x364 mark centred in a 1024x1024 file, which a plain resize would have rendered as 7px glyphs) and correcting Scurry's SVG root `width`/`height` from a square `64x64` to its own `13:10` viewBox ratio, so it stops rendering letterboxed. Neither touches the drawing. The `.entry-logo` rule fits every mark to a 20px band inside the title's 27.19px line box, so the vertical rhythm and the 880px measure are unchanged, and width runs free to 36px so no mark is distorted. Each mark carries `alt=""`: the company name sits in the title as text immediately after it, so a described logo would make a screen reader announce every company twice. The mark sits **outside** the `<a>` on the four linked names, keeping the click target on the text. `check-design-rules.py` needed no change — no rule fired on the logos, so none was narrowed |
