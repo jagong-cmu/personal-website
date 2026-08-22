@@ -157,9 +157,37 @@ Static generation for all public routes. The admin is dynamic and authenticated.
 `jonathangong.com` is registered and connected. Apex and `www` both resolve, and the static
 preview (§11.1, `README.md`) serves from it through Vercel. Verified live 2026-08-20.
 
+### 7.6 Discoverability metadata
+Generated per route from the content, never hand-copied between pages:
+
+1. **Per-page `description`, `author`, Open Graph, and Twitter card.** One description reused
+   across the site is not acceptable — every public route describes itself. Next's route
+   `metadata` export covers this natively, and `metadataBase` makes the `og:image` and
+   `og:url` values absolute without repeating the domain.
+2. **A per-page canonical URL on the apex.** Apex and `www` both serve 200 (§7.5), so without
+   one, search engines may treat the two as duplicates of each other.
+3. **`Person` structured data**, inline in the document so it costs no request: name, url,
+   image, description, `alumniOf`, and `sameAs` listing **only destinations the owner has
+   confirmed**. Decision 30's no-guessed-URLs rule governs structured data exactly as it
+   governs links.
+4. **`robots.txt` and `sitemap.xml`**, generated from the route list (`app/robots.ts`,
+   `app/sitemap.ts`) rather than maintained by hand, so a new route cannot be silently
+   omitted.
+5. **Icons at the root convention paths** — `/favicon.ico` and `/apple-touch-icon.png`.
+   Browsers and iOS request both with no markup at all, so the icon survives any change to
+   the `<head>`. Next's `app/favicon.ico` convention covers the first; the second must sit in
+   `public/`, because `app/apple-icon.*` is served as `/apple-icon` and would miss the path
+   iOS actually asks for.
+
+**The Journey is excluded from all of it and must stay crawlable.** It gets no canonical, no
+Open Graph, no structured data, and no sitemap entry (§8). It is deliberately **not**
+`Disallow`ed in `robots.txt`, and that is not an oversight to correct: a disallowed page is
+never fetched, so its `noindex` is never read, and the bare URL can still be indexed from
+inbound links. Blocking the crawler would make the exclusion weaker, not stronger.
+
 ## 8. Privacy and safety
 
-- **The Journey is excluded from search engines**, so it will not surface in a search for the owner's name. It carries `noindex` and is left out of `sitemap.xml`; it is deliberately **not** `Disallow`ed in `robots.txt`, because a page that is never crawled never has its `noindex` read (decision 38).
+- **The Journey is excluded from search engines**, so it will not surface in a search for the owner's name. It carries `noindex` and is left out of `sitemap.xml`; it is deliberately **not** `Disallow`ed in `robots.txt`, because a page that is never crawled never has its `noindex` read (§7.6, decision 38).
 - **Accepted risk, and now a live condition rather than a future one.** The Journey is publicly reachable today at `jonathangong.com/journey.html`, carrying real photographs of the owner. `noindex` does not restrict anyone holding the URL, and scrapers routinely ignore it. There is **no per-entry private switch** in v1 — every uploaded photo is effectively public to anyone who has ever been sent the link. Adding per-entry visibility later is a retrofit; the option was offered and declined, and that decision stands.
 - **GPS stripping is automatic and cannot be disabled.**
 - The admin route is `noindex, nofollow` and gated on a single GitHub identity.
@@ -298,4 +326,4 @@ See §7.5.
 | 35 | **Work and project entries are brief prose with no metrics.** Supersedes 11 | Owner's explicit instruction 2026-08-20, against firstmate's recommendation to keep the figures. Every three-bullet `entry-body` list in Work and Projects became one to two sentences, and the numeric performance figures were removed outright — signup counts, ambassador and user counts, bug and turnaround reductions, launch and iteration counts, analytics and simulation counts, and the "200+ competitors" figure inside the ManuAI project entry. Nothing was invented to replace them and short entries stay short. Scoped to Work and Projects: the Awards panel keeps "1st Place" and "200+ competitors", and `entry-meta` lines are unaffected. §5.1 and §5.2 are rewritten to match |
 | 36 | **The measure widens from 720px to 880px.** Narrowly overrides §9 for this token only | Owner's instruction 2026-08-20: "a little bit more, not too much". 720px gave roughly 70 characters at 17px and left the front door feeling narrow; 880px is about 88 characters and still leaves roughly 280px of margin each side at 1440px. Hard cap 900px — the About paragraph is the readability constraint, and past it the line grows harder to track back. A single `--measure` token, not a second prose-vs-entry measure. §9's "Do not fill space" is set aside for this one token and nothing else: the negative-space principle otherwise stands in full |
 | 37 | **`zero-external-requests` narrows from "no `<link>` at all" to "no `<link>` that fetches off-site".** Amends decision 33's checker, one day on | The rule shipped 2026-08-20 rejecting every `<link>` element with "the page must fetch nothing", which overshot its own intent: the same function already permitted same-origin `src` and only failed off-site ones, and `<link rel="canonical">` starts no fetch whatsoever. Blanket rejection would have blocked a canonical tag and a favicon link — both of which fetch nothing the browser would not already request from the root convention paths. The rule now turns on what the tag makes the browser do: any stylesheet link and any off-site href still fail; same-origin `canonical`, `icon`, and `apple-touch-icon` pass, and every other `rel` (`preconnect`, `preload`, `prefetch`, a bare `<link>` with no `rel`) still fails. This is a deliberate narrowing to the rule's stated purpose, not the constraint eroding: zero external requests is unchanged and still enforced, and `.github/scripts/test-design-rules.py` pins both halves — what must still fail and what must now pass — so a future permissive edit fails CI instead of shipping |
-| 38 | The site carries a favicon, per-page metadata, `robots.txt`, and `sitemap.xml` | Owner's instruction 2026-08-21. The live site returned 404 for `/favicon.ico`, `/robots.txt`, and `/sitemap.xml`, and its `<head>` held only charset, viewport, and title, so search results and social previews had nothing to work with. The icons are derived from `headshot.jpg`, cropped tighter to the face because a head-and-shoulders photo turns to mush at 16px, and land at the root convention paths so they work with or without a `<link>` tag. Descriptions are per page and distinct. `journey.html` is excluded from the promotion — it keeps its `noindex`, gets no canonical, no Open Graph, and no structured data, and is left out of the sitemap (§8). It is deliberately **not** `Disallow`ed in `robots.txt`: a disallowed page is never crawled, so its `noindex` is never read and the bare URL can still be indexed from inbound links, which would make the exclusion weaker rather than stronger. Canonical URLs name the apex because apex and `www` both serve 200 (§7.5). `sameAs` lists only the GitHub and LinkedIn URLs already confirmed in `ALLOWED_LINK_PREFIXES`; decision 30's no-guessed-URLs rule applies to structured data too. No visible pixel changes except the browser tab icon |
+| 38 | The site carries a favicon, per-page metadata, `robots.txt`, and `sitemap.xml` | Owner's instruction 2026-08-21. The live site returned 404 for `/favicon.ico`, `/robots.txt`, and `/sitemap.xml`, and its `<head>` held only charset, viewport, and title, so search results and social previews had nothing to work with. The icons are derived from `headshot.jpg`, cropped tighter to the face because a head-and-shoulders photo turns to mush at 16px, and land at the root convention paths so they work with or without a `<link>` tag. Descriptions are per page and distinct. `journey.html` is excluded from the promotion — it keeps its `noindex`, gets no canonical, no Open Graph, and no structured data, and is left out of the sitemap (§8). It is deliberately **not** `Disallow`ed in `robots.txt`: a disallowed page is never crawled, so its `noindex` is never read and the bare URL can still be indexed from inbound links, which would make the exclusion weaker rather than stronger. Canonical URLs name the apex because apex and `www` both serve 200 (§7.5). `sameAs` lists only the GitHub and LinkedIn URLs already confirmed in `ALLOWED_LINK_PREFIXES`; decision 30's no-guessed-URLs rule applies to structured data too. No visible pixel changes except the browser tab icon. §7.6 carries this contract forward as a requirement of the Next.js build |
