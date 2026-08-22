@@ -6,13 +6,13 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Current stage: static preview at the repo root
 
-`index.html`, `journey.html`, `blog.html`, `headshot.jpg`, `journey/`, the root icons, and
-`robots.txt` / `sitemap.xml` at the repo root are an owner-approved static preview, **live in
-production on `jonathangong.com`** via Vercel zero-config. They are intentionally
-hand-written, self-contained (inline `<style>`, inline `<script>`, inline SVG), and have
-**no build step, no framework, no package.json, and no dependencies**. Do not add any. They
-will be deleted and replaced by the Next.js app in `PRD.md`, which is the source of truth
-for the eventual architecture — never infer the stack from these files.
+`index.html`, `journey.html`, `blog.html`, `headshot.jpg`, `journey/`, `logos/`, the root
+icons, and `robots.txt` / `sitemap.xml` at the repo root are an owner-approved static
+preview, **live in production on `jonathangong.com`** via Vercel zero-config. They are
+intentionally hand-written, self-contained (inline `<style>`, inline `<script>`, inline
+SVG), and have **no build step, no framework, no package.json, and no dependencies**. Do
+not add any. They will be deleted and replaced by the Next.js app in `PRD.md`, which is
+the source of truth for the eventual architecture — never infer the stack from these files.
 
 Each page duplicates the whole stylesheet and masthead, so any header or style change is a
 three-way edit. That duplication is accepted for the preview and goes away in the Next.js
@@ -29,7 +29,17 @@ designs for unrequested "improvement". Before changing anything visual, read §9
 form: pure `#FFFFFF` background, system font stack only (no Google Fonts), at most three
 type sizes, no shadows/gradients/coloured panels/animation/dark mode. The exceptions §9
 grants to those are the inline-SVG social icons — near-black `#111111`, deliberately *not*
-the link colour — and the circular headshot (the site's only non-zero `border-radius`).
+the link colour — the circular headshot (the site's only non-zero `border-radius`), and the
+**full-colour company logos in the Work panel** (`logos/`, `.entry-logo`, decision 41).
+That last one is an owner override of "no badges" and of the palette limit, chosen over a
+monochrome treatment firstmate recommended: do not desaturate it back, and do not read brand
+colour in Work as licence anywhere else. Nothing may be drawn around a mark, and a company
+whose logo source the owner has not confirmed carries none — Bizybear's empty slot is
+correct (decision 30 covers logo sources as it covers links). The marks sit in a shared
+fixed-width slot reserved on the Work title, so all five company names keep one left edge and
+the unmarked entry holds the same indent — a ragged left edge is a defect, not the look of an
+absent mark (decision 42). That slot is scoped to `[data-panel="work"]`: the Projects panel
+shares `.entry-title` and must not gain a gutter.
 
 Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no external
@@ -53,6 +63,17 @@ circle, because a head-and-shoulders photo is unreadable at 16px. They were prod
 `magick headshot.jpg -auto-orient -strip -crop 440x440+115+55 +repage` into a working file,
 then resized; the `-auto-orient` before `-strip` ordering is the same and non-negotiable.
 Regenerate them only if the headshot itself changes.
+The `logos/` company marks are the other exception, and they split by file type. The two rasters
+(`996-ventures.png`, `scottylabs.png`) take the strip command with the same flag order
+(`magick <in> -auto-orient -strip ... -quality 82 <out>`), but the resize geometry is the display
+size, not `1600x1600>`. The two SVGs (`corgi.svg`, `scurry.svg`) are text files, so `magick` is
+the wrong tool for them and `no-image-metadata` does not reach them either — the checker's
+`IMAGE_SUFFIXES` is `.jpg`/`.jpeg`/`.png` only, so nothing in CI polices an SVG. Clear a committed
+SVG by reading it: no `<metadata>` block, no generator comment, and no external `href`, which
+zero external requests would forbid anyway. Two marks carried a file-level defect that had to be
+corrected before they were usable, and the corrections are recorded in decision 41 rather than
+repeated here. Do not recolour, crop, or restyle a mark: using it as published is what keeps
+nominative use of an employer's logo straightforward.
 Make the change asked for and nothing else.
 
 Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, which runs on
