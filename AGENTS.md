@@ -6,13 +6,13 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Current stage: static preview at the repo root
 
-`index.html`, `journey.html`, `blog.html`, `headshot.jpg`, `journey/`, the root icons, and
-`robots.txt` / `sitemap.xml` at the repo root are an owner-approved static preview, **live in
-production on `jonathangong.com`** via Vercel zero-config. They are intentionally
-hand-written, self-contained (inline `<style>`, inline `<script>`, inline SVG), and have
-**no build step, no framework, no package.json, and no dependencies**. Do not add any. They
-will be deleted and replaced by the Next.js app in `PRD.md`, which is the source of truth
-for the eventual architecture — never infer the stack from these files.
+`index.html`, `journey.html`, `blog.html`, `headshot.jpg`, `journey/`, `logos/`, the root
+icons, and `robots.txt` / `sitemap.xml` at the repo root are an owner-approved static
+preview, **live in production on `jonathangong.com`** via Vercel zero-config. They are
+intentionally hand-written, self-contained (inline `<style>`, inline `<script>`, inline
+SVG), and have **no build step, no framework, no package.json, and no dependencies**. Do
+not add any. They will be deleted and replaced by the Next.js app in `PRD.md`, which is
+the source of truth for the eventual architecture — never infer the stack from these files.
 
 Each page duplicates the whole stylesheet and masthead, so any header or style change is a
 three-way edit. That duplication is accepted for the preview and goes away in the Next.js
