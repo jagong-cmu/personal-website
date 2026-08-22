@@ -159,7 +159,7 @@ preview (§11.1, `README.md`) serves from it through Vercel. Verified live 2026-
 
 ## 8. Privacy and safety
 
-- **The Journey is excluded from search engines**, so it will not surface in a search for the owner's name.
+- **The Journey is excluded from search engines**, so it will not surface in a search for the owner's name. It carries `noindex` and is left out of `sitemap.xml`; it is deliberately **not** `Disallow`ed in `robots.txt`, because a page that is never crawled never has its `noindex` read (decision 38).
 - **Accepted risk, and now a live condition rather than a future one.** The Journey is publicly reachable today at `jonathangong.com/journey.html`, carrying real photographs of the owner. `noindex` does not restrict anyone holding the URL, and scrapers routinely ignore it. There is **no per-entry private switch** in v1 — every uploaded photo is effectively public to anyone who has ever been sent the link. Adding per-entry visibility later is a retrofit; the option was offered and declined, and that decision stands.
 - **GPS stripping is automatic and cannot be disabled.**
 - The admin route is `noindex, nofollow` and gated on a single GitHub identity.

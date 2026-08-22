@@ -28,7 +28,8 @@ every decision.
 ## Current state: static preview (temporary)
 
 The `index.html`, `journey.html`, `blog.html`, and `headshot.jpg` files at the repository
-root, together with the `journey/` photographs, are the **owner-approved static preview**,
+root, together with the `journey/` photographs, the `favicon.ico` and `apple-touch-icon.png`
+icons, and `robots.txt` / `sitemap.xml`, are the **owner-approved static preview**,
 and they are what is live in production today at <https://jonathangong.com>, deployed on
 Vercel zero-config. This is the public site at the owner's own domain, not a review link.
 They are hand-written HTML with an inline `<style>` block and no build step, no framework,
