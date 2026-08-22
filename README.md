@@ -14,7 +14,6 @@ A recruiter-facing front door with personal depth behind it:
 | `/#about` | About |
 | `/#work` | Work experience |
 | `/#projects` | Projects |
-| `/#awards` | Awards |
 | `/journey.html` | Photographic timeline (excluded from search engines) |
 | `/blog.html` | Writing |
 | `/admin` | Authenticated content management (not built yet) |
