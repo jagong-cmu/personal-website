@@ -16,3 +16,6 @@ jobs:
 
       - name: Check design rules
         run: python3 .github/scripts/check-design-rules.py
+
+      - name: Test design rules
+        run: python3 .github/scripts/test-design-rules.py

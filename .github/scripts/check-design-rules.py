@@ -37,6 +37,38 @@ ALLOWED_LINK_PREFIXES = (
 # stay unapproved until the owner confirms them by name.
 LINK_BOUNDARY = "/?#"
 
+# The site's own origin. Canonical URLs point at the apex, never at `www`, because apex and
+# `www` both serve 200 and a search engine that sees two hostnames sees two sites (§7.5).
+SITE_ORIGIN = "https://jonathangong.com"
+
+# `rel` values a <link> element may carry. `canonical` starts no fetch at all; `icon` and
+# `apple-touch-icon` name files committed to this repository, which the browser would
+# request from the root convention paths with or without the tag. Everything else — and
+# `stylesheet` above all — is a fetch this page does not make. See PRD decision 37.
+ALLOWED_LINK_RELS = frozenset({"canonical", "icon", "apple-touch-icon"})
+
+
+def attribute_of(tag, name):
+    """An attribute's value from a tag's source text, or "" when it is absent."""
+    m = re.search(rf"""\b{name}\s*=\s*["']([^"']*)["']""", tag, re.I)
+    return m.group(1).strip() if m else ""
+
+
+def is_same_origin(url):
+    """True for a relative path, or an absolute URL on the site's own origin.
+
+    A scheme this function does not recognise as the site's own — `data:`, another host,
+    protocol-relative `//` — is off-site, because whatever it names is not in this
+    repository."""
+    if url.startswith(("http://", "https://", "//")):
+        if not url.startswith(SITE_ORIGIN):
+            return False
+        rest = url[len(SITE_ORIGIN):]
+        return rest == "" or rest[0] in LINK_BOUNDARY
+    if re.match(r"^[a-z][a-z0-9+.-]*:", url, re.I):
+        return False
+    return True
+
 
 def is_allowed_link(url):
     for prefix in ALLOWED_LINK_PREFIXES:
@@ -87,13 +119,41 @@ def css_blocks(css):
 # --------------------------------------------------------------------------------------
 # Rule 1 — zero external requests
 # --------------------------------------------------------------------------------------
+def check_link_element(path, n, tag):
+    """A single <link>. The rule is about fetches, so it turns on what the tag makes the
+    browser do: a stylesheet or an off-site href is a fetch and fails; a same-origin
+    canonical, icon, or apple-touch-icon is not and passes."""
+    rels = set(attribute_of(tag, "rel").lower().split())
+    href = attribute_of(tag, "href")
+
+    if "stylesheet" in rels:
+        fail("zero-external-requests", path, n,
+             f"<link rel=\"stylesheet\"> found. The CSS is inline on purpose; the page loads "
+             f"no stylesheet, its own included.\n    {tag.strip()}")
+        return
+
+    if href and not is_same_origin(href):
+        fail("zero-external-requests", path, n,
+             f"<link> href points off-site: {href}\n"
+             f"    A <link> may only name this repository's own files or {SITE_ORIGIN}.\n"
+             f"    {tag.strip()}")
+        return
+
+    if not rels or not rels <= ALLOWED_LINK_RELS:
+        described = ", ".join(sorted(rels)) or "(none)"
+        fail("zero-external-requests", path, n,
+             f"<link rel=\"{described}\"> is not one the page is permitted to carry.\n"
+             f"    Allowed rel values: {', '.join(sorted(ALLOWED_LINK_RELS))} — these start no "
+             f"fetch off this site. Anything else does.\n    {tag.strip()}")
+
+
 def check_external_requests(path, text):
     for n, line in lines_of(text):
-        # No stylesheet links at all: the CSS is inline on purpose.
         for m in re.finditer(r"<link\b[^>]*>", line, re.I):
-            fail("zero-external-requests", path, n,
-                 f"<link> tag found. The stylesheet is inline; the page must fetch nothing.\n"
-                 f"    {m.group(0).strip()}")
+            check_link_element(path, n, m.group(0))
+        # <link> hrefs are judged above, on what the browser does with them. The scans
+        # below are about other attributes, so the tags come out of the line first.
+        line = re.sub(r"<link\b[^>]*>", " ", line, flags=re.I)
 
         # Anything the browser fetches automatically must be a relative path.
         for m in re.finditer(r"""\bsrc\s*=\s*["']([^"']+)["']""", line, re.I):
