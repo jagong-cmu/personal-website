@@ -34,12 +34,16 @@ the link colour — the circular headshot (the site's only non-zero `border-radi
 That last one is an owner override of "no badges" and of the palette limit, chosen over a
 monochrome treatment firstmate recommended: do not desaturate it back, and do not read brand
 colour in Work as licence anywhere else. Nothing may be drawn around a mark, and a company
-whose logo source the owner has not confirmed carries none — Bizybear's empty slot is
-correct (decision 30 covers logo sources as it covers links). The marks sit in a shared
-fixed-width slot reserved on the Work title, so all five company names keep one left edge and
-the unmarked entry holds the same indent — a ragged left edge is a defect, not the look of an
-absent mark (decision 42). That slot is scoped to `[data-panel="work"]`: the Projects panel
-shares `.entry-title` and must not gain a gutter.
+whose logo source the owner has not confirmed carries none — no placeholder, initial, or
+generic glyph stands in for it, and the slot simply stays empty (decision 30 covers logo
+sources as it covers links). All four current entries happen to carry a mark, so the rule has
+no live example on the page; it still binds the next entry added. The marks sit in a shared
+fixed-width column — 40px on the owner's instruction of 2026-08-24, decision 44 — so all four
+company names keep one left edge and an unmarked entry would hold the same indent; a ragged
+left edge is a defect, not the look of an absent mark (decision 42). At 40px a mark no longer
+fits the title's line box, so a Work entry is a two-column grid rather than an inline image.
+That grid is scoped to `[data-panel="work"]`: the Projects panel shares `.entry` and
+`.entry-title` and must not gain a column.
 
 Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no external
