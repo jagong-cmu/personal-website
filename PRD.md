@@ -5,7 +5,7 @@
 - **Status:** Visual direction approved (§9, decisions 27–30). The approved static preview
   is landed at the repository root and is **live in production on `jonathangong.com`**; the
   Next.js build in §7 has not started. `README.md` covers the preview.
-- **Date:** 2026-08-18, last revised 2026-08-21
+- **Date:** 2026-08-18, last revised 2026-08-25
 - **Source:** Derived from a four-round requirements interview. Every decision below traces to the log in §13.
 
 ---
