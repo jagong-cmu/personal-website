@@ -46,7 +46,7 @@ That grid is scoped to `[data-panel="work"]`: the Projects panel shares `.entry`
 `.entry-title` and must not gain a column.
 
 §9 grants one further exception of the same kind, and it is the **Projects panel: rounded
-image cards with a hover reveal** (decisions 45 and 48–52, owner's instruction 2026-08-25).
+image cards with a hover reveal** (decisions 45, 48–52 and 53, owner's instruction 2026-08-25).
 At rest a card is the screenshot from `projects/` and nothing else, filling it edge to edge
 inside a `1px` hairline (`--rule`) and a `border-radius` that clips it. The title, meta,
 one-sentence description, and any links row live in an overlay revealed on hover over a flat
@@ -69,10 +69,18 @@ matches the whole selector, not a substring, so a radius on anything else — in
 text is live markup, not leftovers — do not read it as dead and delete it.** The title and
 description sit in the DOM at all times and are hidden only by `opacity`, never `display:
 none`, `visibility: hidden`, `aria-hidden`, CSS `content`, or script, so a screen reader reads
-all three with no interaction. `:focus-within` opens the overlay for a keyboard user, and
-below 560px it stops being an overlay and lays out permanently under the image, because phones
-do not hover. Those three paths are load-bearing; a change that leaves the description
-reachable only by mouse is a regression.
+all three with no interaction. `:focus-within` opens the overlay for a keyboard user. And the
+overlay is not the default state at all: **the permanent layout is the default and the overlay
+is a capability-gated enhancement** (decision 53). `.entry-reveal` is static, opaque and
+unscrimmed in the base rules, and only inside
+`@media (hover: hover) and (pointer: fine) and (min-width: 768px)` does it become the absolute,
+scrimmed, `opacity: 0` overlay. Gating on width alone was the bug: an iPad reports a wide
+viewport and no hover, so it got neither the overlay nor the text, and a hovering window in the
+561-660px band clipped the title off the top of a card whose height is locked to the image's
+12:5 ratio. The 768px floor is measured — PatientScope has the tallest overlay and only clears
+its own 28px top padding from 720px up — so re-measure PatientScope before lowering it. Those
+three paths are load-bearing; a change that leaves the description reachable only by mouse is a
+regression.
 
 A linked card is the click target through an empty `::after` stretched from the title's `<a>`,
 so the visible link stays on the title text. Chalk has no confirmed destination, so it carries
@@ -82,7 +90,10 @@ one sentence each (decision 50); ManuAI's 1st-place hackathon line was kept thro
 purpose and the About paragraph depends on it. Cards are one per row (decision 51): three
 across was measured at about 234x97 per image and rejected as unreadable. All three images
 share one ratio and one pixel size on purpose — re-crop, never letterbox or stretch, if a
-fourth is added. Every card rule is scoped to `[data-panel="projects"]` the way the Work grid
+fourth is added. Each `projects/` `<img>` carries `loading="lazy"` alongside its intrinsic
+`width`/`height` (decision 54): the three PNGs are 762KB together and `display: none` on the
+inactive panel does not stop a browser fetching them, so a fourth screenshot gets the attribute
+too. Every card rule is scoped to `[data-panel="projects"]` the way the Work grid
 is scoped to `[data-panel="work"]`, and for the same reason: verify both panels after touching
 either.
 
@@ -117,6 +128,11 @@ choice**: the discarded region held browser chrome, the macOS dock, and a video-
 showing two identifiable bystanders. Do not widen that crop, re-derive `projects/chalk.png`
 from a fuller frame, or restore the removed area — the in-app "Nico" tutor avatar that remains
 is product UI and is the only face the file may carry.
+The patient names visible in `projects/patientscope-ai.png` are **owner-confirmed synthetic
+placeholders** (decision 55), confirmed before the file shipped because git history is public
+and permanent. That file ships exactly as committed — do not re-crop, blur, or re-export it, and
+do not re-open the question. It is a confirmation, not a licence: the next screenshot showing
+anything that reads as personal data needs its own, on the same terms.
 
 The `logos/` company marks are the other exception, and they split by file type. The two rasters
 (`996-ventures.png`, `scottylabs.png`) take the strip command with the same flag order

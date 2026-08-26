@@ -132,10 +132,11 @@ html.js .panel.is-active { display: block; }
    Motion stays at zero (decision 52). The reveal is an opacity switch with no transition and
    no transform; section 9's motion rule and CI's `transition` ban were not relaxed for it.
    The reveal must reach a visitor who cannot hover, so it is not hover-only: `:focus-within`
-   opens it for a keyboard user, and below 560px it is laid out permanently under the image
-   instead. Its text is real markup at all times, only visually hidden by `opacity: 0`, so a
-   screen reader reads all three descriptions with no interaction — do not "clean up" that
-   markup as dead, and do not move it into CSS `content` or a script.
+   opens it for a keyboard user, and anywhere the overlay is not offered the same text is laid
+   out permanently under the image instead (decision 53). Its text is real markup at all times,
+   only visually hidden by `opacity: 0`, so a screen reader reads all three descriptions with
+   no interaction — do not "clean up" that markup as dead, and do not move it into CSS
+   `content` or a script.
    Scoped to Projects throughout, the mirror of the Work grid's scoping: Work shares .entry
    and .entry-title and must not gain a border, exactly as Projects must not gain a logo
    column. A linked project's card is the click target: the title's <a> stretches an empty
@@ -157,25 +158,48 @@ html.js .panel.is-active { display: block; }
   overflow: hidden;
 }
 [data-panel="projects"] .entry-shot { display: block; width: 100%; height: auto; }
-/* The scrim is flat white rather than a dark wash so the overlay keeps the site's own
-   colour language — near-black text, grey meta, the link accent — over screenshots that
-   range from ManuAI's dark camera feed to PatientScope's white dashboard. At 0.94 the
-   composite is effectively white under every one of them, so the contrast the text gets
-   does not depend on which image it happens to sit on. */
-[data-panel="projects"] .entry-reveal {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 28px;
-  background: rgba(255, 255, 255, 0.94);
-  opacity: 0;
-}
-[data-panel="projects"] .entry:hover .entry-reveal,
-[data-panel="projects"] .entry:focus-within .entry-reveal { opacity: 1; }
+/* The permanent layout is the DEFAULT and the overlay is the enhancement, so a card only
+   hides its text where the device has proved it can hover and the card is wide enough to
+   hold the overlay. Everywhere else — every touch device at any width, and every hovering
+   window below the floor — the title, meta, description, and any links row sit under the
+   image, unscrimmed, with nothing to tap. */
+[data-panel="projects"] .entry-reveal { padding: 20px; }
 [data-panel="projects"] .entry-title a::after { content: ""; position: absolute; inset: 0; }
 [data-panel="projects"] .entry-links { position: relative; }
+/* The overlay is gated on hover and pointer capability rather than on viewport width
+   (decision 53), because width alone answered the wrong question: an iPad at 768px reports
+   a wide viewport and no hover, so under the old rule it showed three unlabelled
+   screenshots and a tap left the site with nothing naming the destination.
+   The `min-width` floor is measured, not guessed, and closes a second defect. The card's
+   height is locked to the image's 12:5 ratio while the overlay's text grows as the card
+   narrows, so `justify-content: flex-end` pushed the excess past the *top* edge, where
+   `overflow: hidden` cut the title off. Title-top offsets against the card's top edge,
+   negative meaning clipped away: 561px -53 / -85 / -49, 600px -36 / -69 / -9, 640px
+   +8 / -28 / +35, 700px +33 / +24 / +60, 720px +41 / +32 / +68, 768px +88 / +52 / +88
+   (ManuAI / PatientScope / Chalk). PatientScope's overlay is the tallest — longest
+   description plus the Repository row — and only clears the overlay's own 28px top padding
+   from 720px up, so the floor is 768px: the first round value above the measured one, and
+   one that also keeps an iPad-width window on the permanent layout. Do not lower it without
+   re-measuring PatientScope. */
+@media (hover: hover) and (pointer: fine) and (min-width: 768px) {
+  /* The scrim is flat white rather than a dark wash so the overlay keeps the site's own
+     colour language — near-black text, grey meta, the link accent — over screenshots that
+     range from ManuAI's dark camera feed to PatientScope's white dashboard. At 0.94 the
+     composite is effectively white under every one of them, so the contrast the text gets
+     does not depend on which image it happens to sit on. */
+  [data-panel="projects"] .entry-reveal {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 28px;
+    background: rgba(255, 255, 255, 0.94);
+    opacity: 0;
+  }
+  [data-panel="projects"] .entry:hover .entry-reveal,
+  [data-panel="projects"] .entry:focus-within .entry-reveal { opacity: 1; }
+}
 
 /* Journey */
 .era { }
@@ -202,14 +226,6 @@ html.js .panel.is-active { display: block; }
   .jentry.work { padding-left: 16px; }
   .era + .era { margin-top: 72px; }
   .photo { width: 100%; }
-  /* No hover on a phone, so the reveal stops being a reveal: it leaves the image and lays
-     out permanently beneath it, unscrimmed. Nothing here is tap-to-open. */
-  [data-panel="projects"] .entry-reveal {
-    position: static;
-    opacity: 1;
-    background: none;
-    padding: 20px;
-  }
 }
 </style>
 </head>
