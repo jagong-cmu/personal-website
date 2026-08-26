@@ -92,8 +92,8 @@ both the earlier guess at which public repositories would be featured and the fi
 root static preview shipped with. An entry carries its own award mention where one applies, which is
 where the confirmed award now lives (decision 39).
 
-A Projects entry is a **rounded image card** (§9's 2026-08-25 exception, decisions 45 and
-48–52). At rest the card is the screenshot and nothing else: the image fills it edge to edge
+A Projects entry is a **rounded image card** (§9's 2026-08-25 exception, decisions 45, 48–52
+and 53). At rest the card is the screenshot and nothing else: the image fills it edge to edge
 and the card's `border-radius` clips it, with a hairline border around the whole thing and
 nothing else drawn — no shadow, no gradient, no fill, no motion. The title, meta, description,
 and any `.entry-links` row live in an **overlay revealed on hover**, over a flat translucent
@@ -324,7 +324,7 @@ Hard rules, stated as prohibitions because that is how this direction fails:
     hover cannot reach a reveal (decision 53). Work is
     untouched: it shares `.entry` and `.entry-title` with Projects, and every card rule is
     scoped to `[data-panel="projects"]` the way the Work logo column is scoped to
-    `[data-panel="work"]`. See decisions 45 and 48–52.
+    `[data-panel="work"]`. See decisions 45, 48–52 and 53.
 - **Colour is black text on white**, plus grey for metadata. At most one restrained accent,
   used for links only. No accent backgrounds.
   - **Exception, owner's instruction 2026-08-19:** the three social icons are near-black
