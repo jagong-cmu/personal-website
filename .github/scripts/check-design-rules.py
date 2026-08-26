@@ -30,6 +30,11 @@ ALLOWED_LINK_PREFIXES = (
     "https://996ventures.com",
     "https://www.corgi.insure",
     "https://scurryconsulting.com",
+    # Projects the owner has confirmed by name, on the same terms (PRD decision 47). Chalk
+    # is deliberately unlinked: the owner declined a destination for it, so it stays plain
+    # text rather than acquiring a guessed one.
+    "https://www.youtube.com/watch?v=9Mp3-vZTWuM",
+    "https://devpost.com/software/patientscope-ai",
     "mailto:",
 )
 
@@ -48,6 +53,19 @@ SITE_ORIGIN = "https://jonathangong.com"
 # request from the root convention paths with or without the tag. Everything else — and
 # `stylesheet` above all — is a fetch this page does not make. See PRD decision 37.
 ALLOWED_LINK_RELS = frozenset({"canonical", "icon", "apple-touch-icon"})
+
+# Selectors permitted a non-zero `border-radius`. The site is square; each exception is
+# granted by name in PRD.md section 9 — `.masthead img` is the circular headshot (2026-08-19)
+# and the Projects image card is the rounded card (2026-08-25, decision 49).
+#
+# Matched against the whole selector, comma part by comma part, and never as a substring:
+# `[data-panel="projects"] .entry-title` shares a prefix with the card and must NOT inherit
+# the permission from it, and `.masthead img, .anything-else` must not launder a radius onto
+# `.anything-else` by naming the headshot alongside it.
+RADIUS_EXEMPT_SELECTORS = frozenset({
+    ".masthead img",
+    '[data-panel="projects"] .entry',
+})
 
 
 def attribute_of(tag, name):
@@ -262,18 +280,21 @@ def check_no_decoration(path, text):
         if re.search(r"\banimation\s*:\s*(?!none)", stripped, re.I):
             fail("no-decoration", path, n, "animation is not permitted.")
 
-    # border-radius: the circular headshot is the single granted exception.
+    # border-radius: only the selectors named in RADIUS_EXEMPT_SELECTORS may carry one.
     for css in styles_of(text):
         for selector, body in css_blocks(css):
             for m in re.finditer(r"border-radius\s*:\s*([^;}]+)", body, re.I):
                 value = m.group(1).strip()
                 if re.fullmatch(r"0(?:px|%|em|rem)?", value):
                     continue
-                if ".masthead img" not in selector:
+                parts = {part.strip() for part in selector.split(",") if part.strip()}
+                if not parts or not parts <= RADIUS_EXEMPT_SELECTORS:
+                    named = ", ".join(f"`{s}`" for s in sorted(RADIUS_EXEMPT_SELECTORS))
                     fail("no-decoration", path, None,
                          f"border-radius: {value} on `{selector}`.\n"
-                         f"    The headshot (.masthead img) is the only element permitted a "
-                         f"non-zero border-radius.")
+                         f"    Only {named} may carry a non-zero border-radius — the circular "
+                         f"headshot and the Projects image card, each granted by name in PRD "
+                         f"section 9. Every other element on the site is square.")
 
 
 # --------------------------------------------------------------------------------------

@@ -45,6 +45,7 @@
   --grey: #6b6b6b;
   --link: #0645ad;
   --icon: #111111;
+  --rule: #dcdcdc;
   --measure: 880px;
   --t-meta: 15px;
   --t-body: 17px;
@@ -149,6 +150,87 @@ html.js .panel.is-active { display: block; }
 .entry-links { font-size: var(--t-meta); margin-top: 12px; }
 .note { color: var(--grey); }
 
+/* A Projects entry is a rounded image card that shows the screenshot and nothing else at
+   rest; the title, meta, and one-sentence description sit in an overlay revealed on hover
+   (owner's instruction 2026-08-25, PRD section 9 exception, decisions 45, 48-52 and 53).
+   The card is the site's only border-as-styling and, with the headshot, one of only two
+   elements permitted a non-zero border-radius — `check-design-rules.py` gates both by name.
+   `overflow: hidden` is what makes the radius clip the screenshot, so no square image corner
+   pokes out past it. Nothing else is granted: no shadow, no gradient, no tinted panel.
+   One card per row at full measure, because at three across each image rendered about
+   234x97 and was unreadable (decision 51).
+   Motion stays at zero (decision 52). The reveal is an opacity switch with no transition and
+   no transform; section 9's motion rule and CI's `transition` ban were not relaxed for it.
+   The reveal must reach a visitor who cannot hover, so it is not hover-only: `:focus-within`
+   opens it for a keyboard user, and anywhere the overlay is not offered the same text is laid
+   out permanently under the image instead (decision 53). Its text is real markup at all times,
+   only visually hidden by `opacity: 0`, so a screen reader reads all three descriptions with
+   no interaction — do not "clean up" that markup as dead, and do not move it into CSS
+   `content` or a script.
+   Scoped to Projects throughout, the mirror of the Work grid's scoping: Work shares .entry
+   and .entry-title and must not gain a border, exactly as Projects must not gain a logo
+   column. A linked project's card is the click target: the title's <a> stretches an empty
+   ::after over the whole card, which keeps the visible link on the title text (decision 29)
+   rather than wrapping the prose in an anchor and flattening it to link colour. Chalk has no
+   confirmed destination (decision 47) so it carries no anchor at all and nothing in its card
+   implies a click; it takes `tabindex="0"` instead, which is the only way a keyboard user
+   reaches a card with no focusable descendant. `.entry-links` is positioned so it paints
+   above the stretched ::after and its Repository link stays independently clickable. */
+[data-panel="projects"] .cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+[data-panel="projects"] .entry {
+  position: relative;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+[data-panel="projects"] .entry-shot { display: block; width: 100%; height: auto; }
+/* The permanent layout is the DEFAULT and the overlay is the enhancement, so a card only
+   hides its text where the device has proved it can hover and the card is wide enough to
+   hold the overlay. Everywhere else — every touch device at any width, and every hovering
+   window below the floor — the title, meta, description, and any links row sit under the
+   image, unscrimmed, with nothing to tap. */
+[data-panel="projects"] .entry-reveal { padding: 20px; }
+[data-panel="projects"] .entry-title a::after { content: ""; position: absolute; inset: 0; }
+[data-panel="projects"] .entry-links { position: relative; }
+/* The overlay is gated on hover and pointer capability rather than on viewport width
+   (decision 53), because width alone answered the wrong question: an iPad at 768px reports
+   a wide viewport and no hover, so under the old rule it showed three unlabelled
+   screenshots and a tap left the site with nothing naming the destination.
+   The `min-width` floor is measured, not guessed, and closes a second defect. The card's
+   height is locked to the image's 12:5 ratio while the overlay's text grows as the card
+   narrows, so `justify-content: flex-end` pushed the excess past the *top* edge, where
+   `overflow: hidden` cut the title off. Title-top offsets against the card's top edge,
+   negative meaning clipped away: 561px -53 / -85 / -49, 600px -36 / -69 / -9, 640px
+   +8 / -28 / +35, 700px +33 / +24 / +60, 720px +41 / +32 / +68, 768px +88 / +52 / +88
+   (ManuAI / PatientScope / Chalk). PatientScope's overlay is the tallest — longest
+   description plus the Repository row — and only clears the overlay's own 28px top padding
+   from 720px up, so the floor is 768px: the first round value above the measured one, and
+   one that also keeps an iPad-width window on the permanent layout. Do not lower it without
+   re-measuring PatientScope. */
+@media (hover: hover) and (pointer: fine) and (min-width: 768px) {
+  /* The scrim is flat white rather than a dark wash so the overlay keeps the site's own
+     colour language — near-black text, grey meta, the link accent — over screenshots that
+     range from ManuAI's dark camera feed to PatientScope's white dashboard. At 0.94 the
+     composite is effectively white under every one of them, so the contrast the text gets
+     does not depend on which image it happens to sit on. */
+  [data-panel="projects"] .entry-reveal {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 28px;
+    background: rgba(255, 255, 255, 0.94);
+    opacity: 0;
+  }
+  [data-panel="projects"] .entry:hover .entry-reveal,
+  [data-panel="projects"] .entry:focus-within .entry-reveal { opacity: 1; }
+}
+
 /* Journey */
 .era { }
 .era + .era { margin-top: 96px; }
@@ -244,36 +326,37 @@ html.js .panel.is-active { display: block; }
 
     <section class="panel" data-panel="projects" aria-label="Projects">
 
-      <article class="entry">
-        <p class="entry-title">ManuAI</p>
-        <p class="entry-meta">June 2026 &middot; Python, Swift, JavaScript, LiveKit</p>
-        <p class="entry-body">Offline multimodal voice assistant that lets factory operators verbally query manufacturing issues, answering from a local RAG pipeline that retrieves over SOPs, OEMs, and chat logs using vector embeddings. Won 1st place at the Y Combinator &times; Moss Conversational AI Hackathon, sponsored by Unsiloed AI (YC F25).</p>
-      </article>
+      <div class="cards">
 
-      <article class="entry">
-        <p class="entry-title">PatientScope AI</p>
-        <p class="entry-meta">May 2026 &middot; TypeScript, Python, PostgreSQL, FastAPI, Vite, React</p>
-        <p class="entry-body">Clinical decision-support platform for ICU discharges built on the MIMIC-IV dataset, with a Random Forest model predicting patient risk scores from demographic, vital, and lab features and chained PostgreSQL CTEs reconstructing and cleaning the raw EHR cohorts. Split-hosting architecture: a static frontend, with FastAPI and Postgres behind an nginx reverse proxy with TLS.</p>
-        <p class="entry-links"><a href="https://github.com/jagong-cmu/patientscopeai">Repository</a></p>
-      </article>
+        <article class="entry">
+          <img class="entry-shot" loading="lazy" src="projects/manuai.png" alt="ManuAI&rsquo;s operator console: a live Ray-Ban camera feed of a room with a white door, a wall-mounted panel, a window, and an open drum, a person in the foreground seen from behind, beside a running transcription in which the assistant answers a jammed-labeler question with a cited SOP, above a context-pool graph of retrieved chunks." width="1080" height="450">
+          <div class="entry-reveal">
+            <p class="entry-title"><a href="https://www.youtube.com/watch?v=9Mp3-vZTWuM">ManuAI</a></p>
+            <p class="entry-meta">June 2026 &middot; Python, Swift, JavaScript, LiveKit</p>
+            <p class="entry-body">Offline multimodal voice assistant that answers factory operators&rsquo; spoken questions from a local RAG pipeline over SOPs, OEMs, and chat logs, and won 1st place at the Y Combinator &times; Moss Conversational AI Hackathon.</p>
+          </div>
+        </article>
 
-      <article class="entry">
-        <p class="entry-title">Chalk</p>
-        <p class="entry-meta">June 2026 &middot; TypeScript, React, Python, LiveKit, PostgreSQL</p>
-        <p class="entry-body">Interactive AI voice tutor that draws synced whiteboard animations from personalized uploads, using a JSON format designed for the AI to describe drawings and a separate renderer to animate them on screen. A RAG pipeline (extract, chunk, embed, retrieve) grounds its responses in the uploaded course material.</p>
-      </article>
+        <article class="entry">
+          <img class="entry-shot" loading="lazy" src="projects/patientscope-ai.png" alt="PatientScope AI&rsquo;s ward overview: bed utilisation reading 93 of 100, a colour-coded NEWS score distribution grid, and a critical-alerts list of lab changes for monitored ICU patients." width="1080" height="450">
+          <div class="entry-reveal">
+            <p class="entry-title"><a href="https://devpost.com/software/patientscope-ai">PatientScope AI</a></p>
+            <p class="entry-meta">May 2026 &middot; TypeScript, Python, PostgreSQL, FastAPI, Vite, React</p>
+            <p class="entry-body">Clinical decision-support platform for ICU discharges built on the MIMIC-IV dataset, with a Random Forest model predicting patient risk scores from demographic, vital, and lab features.</p>
+            <p class="entry-links"><a href="https://github.com/jagong-cmu/patientscopeai">Repository</a></p>
+          </div>
+        </article>
 
-      <article class="entry">
-        <p class="entry-title">Poker Bot</p>
-        <p class="entry-meta">March 2026 &middot; Python, NumPy</p>
-        <p class="entry-body">Heads-up poker agent for a 27-card modified Hold&rsquo;em tournament, with a real-time opponent-modeling layer feeding analytics into the bot&rsquo;s heuristics. A pure-Python hand evaluator with tiered ranking and a NumPy Monte Carlo equity engine back every decision.</p>
-      </article>
+        <article class="entry" tabindex="0">
+          <img class="entry-shot" loading="lazy" src="projects/chalk.png" alt="Chalk&rsquo;s tutor screen: a question typed into the ask bar, the Nico tutor avatar reading its answer aloud on the left, and a whiteboard the tutor has drawn titled Risk Retention Group with building and shield illustrations." width="1080" height="450">
+          <div class="entry-reveal">
+            <p class="entry-title">Chalk</p>
+            <p class="entry-meta">June 2026 &middot; TypeScript, React, Python, LiveKit, PostgreSQL</p>
+            <p class="entry-body">Interactive AI voice tutor that draws synced whiteboard animations from personalized uploads, grounding its answers in the course material through a RAG pipeline.</p>
+          </div>
+        </article>
 
-      <article class="entry">
-        <p class="entry-title">C0 Virtual Machine</p>
-        <p class="entry-meta">April 2025 &middot; C</p>
-        <p class="entry-body">Bytecode interpreter for the C0 virtual machine over a stack and heap model, with a garbage collector managing heap-allocated memory during execution and native function call support bridging interpreted bytecode to library-level operations.</p>
-      </article>
+      </div>
 
     </section>
 
