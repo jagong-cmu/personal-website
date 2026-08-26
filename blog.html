@@ -44,6 +44,7 @@
   --grey: #6b6b6b;
   --link: #0645ad;
   --icon: #111111;
+  --rule: #dcdcdc;
   --measure: 880px;
   --t-meta: 15px;
   --t-body: 17px;
@@ -148,6 +149,63 @@ html.js .panel.is-active { display: block; }
 .entry-links { font-size: var(--t-meta); margin-top: 12px; }
 .note { color: var(--grey); }
 
+/* A Projects entry is a rounded image card that shows the screenshot and nothing else at
+   rest; the title, meta, and one-sentence description sit in an overlay revealed on hover
+   (owner's instruction 2026-08-25, PRD section 9 exception, decisions 45 and 48-52).
+   The card is the site's only border-as-styling and, with the headshot, one of only two
+   elements permitted a non-zero border-radius — `check-design-rules.py` gates both by name.
+   `overflow: hidden` is what makes the radius clip the screenshot, so no square image corner
+   pokes out past it. Nothing else is granted: no shadow, no gradient, no tinted panel.
+   One card per row at full measure, because at three across each image rendered about
+   234x97 and was unreadable (decision 51).
+   Motion stays at zero (decision 52). The reveal is an opacity switch with no transition and
+   no transform; section 9's motion rule and CI's `transition` ban were not relaxed for it.
+   The reveal must reach a visitor who cannot hover, so it is not hover-only: `:focus-within`
+   opens it for a keyboard user, and below 560px it is laid out permanently under the image
+   instead. Its text is real markup at all times, only visually hidden by `opacity: 0`, so a
+   screen reader reads all three descriptions with no interaction — do not "clean up" that
+   markup as dead, and do not move it into CSS `content` or a script.
+   Scoped to Projects throughout, the mirror of the Work grid's scoping: Work shares .entry
+   and .entry-title and must not gain a border, exactly as Projects must not gain a logo
+   column. A linked project's card is the click target: the title's <a> stretches an empty
+   ::after over the whole card, which keeps the visible link on the title text (decision 29)
+   rather than wrapping the prose in an anchor and flattening it to link colour. Chalk has no
+   confirmed destination (decision 47) so it carries no anchor at all and nothing in its card
+   implies a click; it takes `tabindex="0"` instead, which is the only way a keyboard user
+   reaches a card with no focusable descendant. `.entry-links` is positioned so it paints
+   above the stretched ::after and its Repository link stays independently clickable. */
+[data-panel="projects"] .cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+[data-panel="projects"] .entry {
+  position: relative;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+[data-panel="projects"] .entry-shot { display: block; width: 100%; height: auto; }
+/* The scrim is flat white rather than a dark wash so the overlay keeps the site's own
+   colour language — near-black text, grey meta, the link accent — over screenshots that
+   range from ManuAI's dark camera feed to PatientScope's white dashboard. At 0.94 the
+   composite is effectively white under every one of them, so the contrast the text gets
+   does not depend on which image it happens to sit on. */
+[data-panel="projects"] .entry-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.94);
+  opacity: 0;
+}
+[data-panel="projects"] .entry:hover .entry-reveal,
+[data-panel="projects"] .entry:focus-within .entry-reveal { opacity: 1; }
+[data-panel="projects"] .entry-title a::after { content: ""; position: absolute; inset: 0; }
+[data-panel="projects"] .entry-links { position: relative; }
+
 /* Journey */
 .era { }
 .era + .era { margin-top: 96px; }
@@ -173,6 +231,14 @@ html.js .panel.is-active { display: block; }
   .jentry.work { padding-left: 16px; }
   .era + .era { margin-top: 72px; }
   .photo { width: 100%; }
+  /* No hover on a phone, so the reveal stops being a reveal: it leaves the image and lays
+     out permanently beneath it, unscrimmed. Nothing here is tap-to-open. */
+  [data-panel="projects"] .entry-reveal {
+    position: static;
+    opacity: 1;
+    background: none;
+    padding: 20px;
+  }
 }
 </style>
 </head>

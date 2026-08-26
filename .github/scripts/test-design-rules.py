@@ -6,6 +6,12 @@ the tag actually makes the browser do (PRD decision 37), and that distinction is
 kind that erodes: a permissive bug here is invisible until an external request has shipped.
 So both halves are pinned — what must still fail, and what must now pass.
 
+`no-decoration`'s border-radius branch is the same shape of rule and the same hazard. It named
+one selector until 2026-08-25, when the rounded Projects card was granted a second (decision
+49). A widening that quietly permitted a radius anywhere would still pass CI, so both halves
+are pinned here too: the two exempt selectors pass, and everything else — including selectors
+that merely share a prefix with them, or sit in the same comma-separated list — still fails.
+
 Standard library only, same as the checker. Run it from the repository root:
 
     python3 .github/scripts/test-design-rules.py
@@ -110,6 +116,86 @@ class LinkElementTest(unittest.TestCase):
         rules.failures.clear()
         rules.check_external_requests("test.html", '<a href="https://github.com/jagong-cmu">x</a>\n')
         self.assertEqual([], rules.failures)
+
+
+class BorderRadiusTest(unittest.TestCase):
+    """The site is square except for two elements granted a radius by name in PRD section 9:
+    the circular headshot (2026-08-19) and the Projects image card (2026-08-25, decision 49).
+    Each case is one CSS rule in a page's inline stylesheet."""
+
+    def failures_for(self, css):
+        rules.failures.clear()
+        rules.check_no_decoration("test.html", f"<style>\n{css}\n</style>\n")
+        return list(rules.failures)
+
+    def assertBlocked(self, css):
+        found = self.failures_for(css)
+        self.assertTrue(found, f"expected {css!r} to be rejected, but it passed")
+        for item in found:
+            self.assertIn("no-decoration", item)
+
+    def assertPermitted(self, css):
+        found = self.failures_for(css)
+        self.assertEqual([], found, f"expected {css!r} to pass, but it was rejected:\n"
+                                    + "\n".join(found))
+
+    # ---- the two granted exceptions ---------------------------------------------------
+
+    def test_headshot_radius_is_permitted(self):
+        self.assertPermitted(".masthead img { border-radius: 50%; }")
+
+    def test_projects_card_radius_is_permitted(self):
+        self.assertPermitted('[data-panel="projects"] .entry { border-radius: 10px; }')
+
+    def test_zero_radius_anywhere_is_permitted(self):
+        for css in (".anything { border-radius: 0; }",
+                    ".anything { border-radius: 0px; }",
+                    ".anything { border-radius: 0%; }"):
+            self.assertPermitted(css)
+
+    # ---- everything else still fails --------------------------------------------------
+
+    def test_unrelated_selector_is_still_blocked(self):
+        self.assertBlocked(".entry-logo { border-radius: 4px; }")
+
+    def test_work_entry_is_still_blocked(self):
+        # Work shares `.entry` with Projects; the exception is scoped to the Projects panel.
+        self.assertBlocked('[data-panel="work"] .entry { border-radius: 10px; }')
+
+    def test_bare_entry_is_still_blocked(self):
+        # The exemption names the panel-scoped selector, not `.entry` on its own, which
+        # would carry the radius into Work as well.
+        self.assertBlocked(".entry { border-radius: 10px; }")
+
+    def test_prefix_of_an_exempt_selector_is_still_blocked(self):
+        # `[data-panel="projects"] .entry-title` starts with the exempt selector. A
+        # substring test would let it through; the whole selector has to match.
+        self.assertBlocked('[data-panel="projects"] .entry-title { border-radius: 6px; }')
+        self.assertBlocked('[data-panel="projects"] .entry-reveal { border-radius: 6px; }')
+
+    def test_exempt_selector_cannot_launder_a_group(self):
+        # Naming an exempt selector alongside an unrelated one must not grant the radius to
+        # the unrelated one; every comma part has to be exempt.
+        self.assertBlocked(".masthead img, .tabs a { border-radius: 50%; }")
+        self.assertBlocked('[data-panel="projects"] .entry, .note { border-radius: 10px; }')
+
+    def test_a_group_of_only_exempt_selectors_is_permitted(self):
+        self.assertPermitted(
+            '.masthead img,\n[data-panel="projects"] .entry { border-radius: 10px; }')
+
+    # ---- the branches beside it are untouched -----------------------------------------
+
+    def test_transition_is_still_blocked(self):
+        # The hover reveal is instant on purpose (decision 52). Nothing eases in.
+        self.assertBlocked('[data-panel="projects"] .entry-reveal { transition: opacity .2s; }')
+
+    def test_gradient_scrim_is_still_blocked(self):
+        self.assertBlocked(
+            '[data-panel="projects"] .entry-reveal '
+            '{ background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.6)); }')
+
+    def test_shadow_on_the_card_is_still_blocked(self):
+        self.assertBlocked('[data-panel="projects"] .entry { box-shadow: 0 2px 8px #0002; }')
 
 
 class SameOriginTest(unittest.TestCase):

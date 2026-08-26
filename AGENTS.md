@@ -6,8 +6,8 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Current stage: static preview at the repo root
 
-`index.html`, `journey.html`, `blog.html`, `headshot.jpg`, `journey/`, `logos/`, the root
-icons, and `robots.txt` / `sitemap.xml` at the repo root are an owner-approved static
+`index.html`, `journey.html`, `blog.html`, `headshot.jpg`, `journey/`, `logos/`, `projects/`,
+the root icons, and `robots.txt` / `sitemap.xml` at the repo root are an owner-approved static
 preview, **live in production on `jonathangong.com`** via Vercel zero-config. They are
 intentionally hand-written, self-contained (inline `<style>`, inline `<script>`, inline
 SVG), and have **no build step, no framework, no package.json, and no dependencies**. Do
@@ -29,7 +29,7 @@ designs for unrequested "improvement". Before changing anything visual, read §9
 form: pure `#FFFFFF` background, system font stack only (no Google Fonts), at most three
 type sizes, no shadows/gradients/coloured panels/animation/dark mode. The exceptions §9
 grants to those are the inline-SVG social icons — near-black `#111111`, deliberately *not*
-the link colour — the circular headshot (the site's only non-zero `border-radius`), and the
+the link colour — the circular headshot (one of only two elements permitted a non-zero `border-radius`), and the
 **full-colour company logos in the Work panel** (`logos/`, `.entry-logo`, decision 41).
 That last one is an owner override of "no badges" and of the palette limit, chosen over a
 monochrome treatment firstmate recommended: do not desaturate it back, and do not read brand
@@ -44,6 +44,47 @@ left edge is a defect, not the look of an absent mark (decision 42). At 40px a m
 fits the title's line box, so a Work entry is a two-column grid rather than an inline image.
 That grid is scoped to `[data-panel="work"]`: the Projects panel shares `.entry` and
 `.entry-title` and must not gain a column.
+
+§9 grants one further exception of the same kind, and it is the **Projects panel: rounded
+image cards with a hover reveal** (decisions 45 and 48–52, owner's instruction 2026-08-25).
+At rest a card is the screenshot from `projects/` and nothing else, filling it edge to edge
+inside a `1px` hairline (`--rule`) and a `border-radius` that clips it. The title, meta,
+one-sentence description, and any links row live in an overlay revealed on hover over a flat
+`rgba(255,255,255,0.94)` scrim — white and near-opaque so contrast does not depend on which
+screenshot the text lands over. All of it is an explicit override of §9's "no cards, no
+borders-as-styling", escalated by firstmate before anything was built and confirmed by the
+owner, so it is not an oversight to correct back. It grants the border, the radius, the image,
+and that flat scrim, and nothing more: no shadow, no gradient (CI rejects one, including as a
+scrim), no tinted panel, and **no motion** — the reveal is an instant opacity switch, §9's
+motion rule and CI's `transition` ban were not relaxed for it (decision 52), and easing it is
+an owner decision to reopen, not a gap to close.
+
+The radius means **the headshot is no longer the only rounded element on the site**.
+`check-design-rules.py` now names exactly two selectors in `RADIUS_EXEMPT_SELECTORS` and
+matches the whole selector, not a substring, so a radius on anything else — including
+`[data-panel="projects"] .entry-title`, which merely shares a prefix — still fails.
+`test-design-rules.py` pins both halves; extend it, don't loosen it.
+
+**The Projects panel is the one part of this site with a live interactive state, so its hidden
+text is live markup, not leftovers — do not read it as dead and delete it.** The title and
+description sit in the DOM at all times and are hidden only by `opacity`, never `display:
+none`, `visibility: hidden`, `aria-hidden`, CSS `content`, or script, so a screen reader reads
+all three with no interaction. `:focus-within` opens the overlay for a keyboard user, and
+below 560px it stops being an overlay and lays out permanently under the image, because phones
+do not hover. Those three paths are load-bearing; a change that leaves the description
+reachable only by mouse is a regression.
+
+A linked card is the click target through an empty `::after` stretched from the title's `<a>`,
+so the visible link stays on the title text. Chalk has no confirmed destination, so it carries
+no anchor and nothing in it implies a click — that absence is decision 47, not a gap to fill —
+and its `tabindex="0"` exists solely so a keyboard user can open its reveal. Descriptions are
+one sentence each (decision 50); ManuAI's 1st-place hackathon line was kept through that cut on
+purpose and the About paragraph depends on it. Cards are one per row (decision 51): three
+across was measured at about 234x97 per image and rejected as unreadable. All three images
+share one ratio and one pixel size on purpose — re-crop, never letterbox or stretch, if a
+fourth is added. Every card rule is scoped to `[data-panel="projects"]` the way the Work grid
+is scoped to `[data-panel="work"]`, and for the same reason: verify both panels after touching
+either.
 
 Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no external
@@ -67,6 +108,16 @@ circle, because a head-and-shoulders photo is unreadable at 16px. They were prod
 `magick headshot.jpg -auto-orient -strip -crop 440x440+115+55 +repage` into a working file,
 then resized; the `-auto-orient` before `-strip` ordering is the same and non-negotiable.
 Regenerate them only if the headshot itself changes.
+The `projects/` screenshots follow the same rule with the display size as the resize geometry:
+`magick <in> -auto-orient -crop <geom> +repage -strip -resize 1080x450 -quality 82 <out>`, the
+crop being what brings each source to the shared 12:5 ratio the three cards need (decision 45).
+The three sources live outside this repository and only the stripped results are committed. The
+**Chalk source was a full-desktop capture and its crop is a privacy crop, not a composition
+choice**: the discarded region held browser chrome, the macOS dock, and a video-call overlay
+showing two identifiable bystanders. Do not widen that crop, re-derive `projects/chalk.png`
+from a fuller frame, or restore the removed area — the in-app "Nico" tutor avatar that remains
+is product UI and is the only face the file may carry.
+
 The `logos/` company marks are the other exception, and they split by file type. The two rasters
 (`996-ventures.png`, `scottylabs.png`) take the strip command with the same flag order
 (`magick <in> -auto-orient -strip ... -quality 82 <out>`), but the resize geometry is the display

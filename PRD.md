@@ -82,9 +82,70 @@ outcome and is never filled with a placeholder, an initial, or a generic glyph. 
 two-column grid rather than an image inline in the title.
 
 ### 5.2 Projects — file-edited, hand-curated
-Name, one-line summary, description, tech, links (repo, live). The description takes the same form
-as §5.1 — one to two sentences of prose, no bullet lists, no required metrics (decision 35).
-The set is now curated and settled — the five projects carried by the root static preview (§11.2) — which supersedes the earlier guess at which public repositories would be featured. An entry carries its own award mention where one applies, which is where the confirmed award now lives (decision 39).
+Name, one-line summary, description, tech, links (repo, live). The description is prose with no
+bullet lists and no required metrics (decision 35), condensed to **one sentence** on 2026-08-25
+so it reads as a hover caption (decision 50) — that is where Projects now departs from §5.1's
+one-to-two-sentence form, and only in length.
+The set is curated and settled at **three** projects — ManuAI, PatientScope AI, and Chalk — after
+the owner removed Poker Bot and the C0 Virtual Machine on 2026-08-25 (decision 46). That supersedes
+both the earlier guess at which public repositories would be featured and the five-project set the
+root static preview shipped with. An entry carries its own award mention where one applies, which is
+where the confirmed award now lives (decision 39).
+
+A Projects entry is a **rounded image card** (§9's 2026-08-25 exception, decisions 45 and
+48–52). At rest the card is the screenshot and nothing else: the image fills it edge to edge
+and the card's `border-radius` clips it, with a hairline border around the whole thing and
+nothing else drawn — no shadow, no gradient, no fill, no motion. The title, meta, description,
+and any `.entry-links` row live in an **overlay revealed on hover**, over a flat translucent
+white scrim.
+
+The reveal is not hover-only, because a visitor who cannot hover must still learn what all
+three projects are:
+
+- **Keyboard.** `:focus-within` opens the overlay, so tabbing to a card reveals its
+  description. A card with no focusable descendant — one with no confirmed link — carries
+  `tabindex="0"` so it still takes a tab stop.
+- **Touch.** At the 560px breakpoint and below the overlay stops being an overlay: it lays
+  out permanently beneath the image, unscrimmed. Nothing is tap-to-reveal.
+- **Screen readers.** The title and description are real markup in the DOM at all times,
+  hidden only visually (`opacity`), never `display: none`, `visibility: hidden`,
+  `aria-hidden`, CSS `content`, or script. A screen reader reads all three with no
+  interaction.
+
+That hidden text is therefore live markup with a live interactive state behind it, not
+leftovers — do not read it as dead and delete it.
+
+Each description is **one sentence**, tight enough to read as a hover caption; the
+`.entry-meta` date-and-stack line is already short and sits in the overlay with the title.
+Condensing means cutting, never embellishing: no capability, metric, or claim is added that
+the longer prose did not already carry, and ManuAI's 1st-place hackathon result survives the
+cut because it is the strongest credential on the page (decision 50).
+
+The cards lay out **one per row at full measure**, stacked with the panel's 24px rhythm.
+Three across was measured and rejected: each image rendered about 234x97 and was unreadable,
+which defeats the point of showing an image at all (decision 51).
+
+The image convention:
+
+- The screenshot lives in `projects/` at the repository root, committed and referenced
+  relatively. Zero external requests is not relaxed for it: a project's own site is never
+  hotlinked and no thumbnail is fetched from a third party. A YouTube destination is a plain
+  `<a href>` and never an embedded player or an iframe.
+- It is **stripped of embedded metadata like every other committed image** (§7.3, §8,
+  decision 33) and carries explicit `width`/`height` attributes so the cards do not reflow
+  as the images load.
+- All the images share **one aspect ratio and one pixel size** so three cards side by side
+  read as the same kind of object. Nothing is letterboxed or distorted to reach it: an image
+  that does not fit the ratio is re-cropped, never stretched.
+- Each `<img>` carries a **real `alt`** describing what the screenshot shows. This is the
+  opposite of the Work logos, which carry `alt=""` because the company name repeats them as
+  adjacent text; here the image says something the prose does not.
+- The **whole card is the click target** for a project with a confirmed destination, but the
+  visible link stays on the title text (decision 29) — the title's `<a>` stretches an empty
+  `::after` over the card rather than the prose being wrapped in an anchor. A project with no
+  confirmed destination has no anchor at all, so nothing in its card takes a pointer cursor or
+  implies a click; its overlay still opens on hover and focus like the others. Decision 30's
+  no-guessed-URLs rule governs which is which.
 
 ### 5.3 Blog — admin-managed
 Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. **Ships empty.** Posts are occasional and go up when one is written; there is no post required at launch (decision 34).
@@ -211,8 +272,11 @@ Hard rules, stated as prohibitions because that is how this direction fails:
   - **Exception, owner's instruction 2026-08-19:** social links are monochrome inline-SVG
     icons rather than the words "GitHub"/"LinkedIn"/"Email". Icons only for these three.
   - **Exception, owner's instruction 2026-08-19:** the headshot is a circular crop, framed
-    on the head, and noticeably larger than a thumbnail. This is the one shaped element
-    on the site.
+    on the head, and noticeably larger than a thumbnail. ~~This is the one shaped element
+    on the site.~~ **Amended 2026-08-25, decision 49:** it is one of two, the other being
+    the rounded Projects card below. That is a two-item list, not a loosening — every other
+    element on the site is square, and `check-design-rules.py` permits those two selectors
+    by name and nothing else.
   - **Exception, owner's instruction 2026-08-21:** a Work entry may carry the company's
     own logo beside the company name, in **full colour**. This sets aside "no badges" for
     those marks only. Firstmate escalated the conflict with this section and offered a
@@ -227,6 +291,28 @@ Hard rules, stated as prohibitions because that is how this direction fails:
     double the original 20px band, so the marks read at a deliberate size rather than as
     title ornament (decision 44). Nothing else about the exception moves — still full colour,
     still nothing drawn around the mark.
+  - **Exception, owner's instruction 2026-08-25:** a **Projects** entry is a rounded image
+    card. At rest it shows the project's screenshot and nothing else; the title, meta, and
+    a one-sentence description sit in an overlay revealed on hover. This sets aside "no
+    cards" and "no borders-as-styling" for the Projects panel only. Firstmate escalated the
+    conflict with this section before anything was built and the owner chose cards anyway,
+    then redirected the treatment to image-first with a hover reveal, so it is the
+    instruction, not an oversight to correct back. What it grants is exactly a `1px` border
+    in a light neutral (`--rule`, `#dcdcdc`), a `border-radius` on that card, a committed
+    screenshot filling it edge to edge, and a **flat** translucent white scrim behind the
+    revealed text. What it does not grant, inside the card or anywhere else: no shadow, no
+    gradient — the scrim is flat by rule, and CI rejects a gradient one — no coloured or
+    tinted panel, and **no motion**: the reveal is an instant opacity switch with no
+    transition, no fade, and no transform, and the near-zero motion rule below was not
+    relaxed for it. The radius makes the headshot no longer the only shaped element on the
+    site, and `check-design-rules.py` now permits exactly those two selectors by name and
+    nothing else. The panel carries a real interactive state, so its hidden text is live
+    markup, not dead: the title and description are in the DOM at all times and only
+    visually hidden, `:focus-within` opens the overlay for a keyboard user, and below 560px
+    it is laid out permanently under the image because a phone cannot hover. Work is
+    untouched: it shares `.entry` and `.entry-title` with Projects, and every card rule is
+    scoped to `[data-panel="projects"]` the way the Work logo column is scoped to
+    `[data-panel="work"]`. See decisions 45 and 48–52.
 - **Colour is black text on white**, plus grey for metadata. At most one restrained accent,
   used for links only. No accent backgrounds.
   - **Exception, owner's instruction 2026-08-19:** the three social icons are near-black
@@ -282,7 +368,10 @@ Three owner-scoped edits already made to the preview are waiting on that reactio
 Supplied 2026-08-19 and now living in the root static preview: work experience, the
 curated projects, the three social accounts (GitHub, LinkedIn, email), and
 `headshot.jpg`. It is real content, not placeholder copy, and it is what the Next.js
-build ports into MDX.
+build ports into MDX. The company logos in `logos/` (decision 41) and the three project
+screenshots in `projects/` (decision 45) are owner-supplied on the same terms: each one
+comes from a source the owner confirmed, and an entry whose source has not been confirmed
+carries no mark and no screenshot rather than a substitute.
 
 **Closed 2026-08-21 by decision 39.** The awards open item is retired with the section
 that held it: the one confirmed award is a sentence inside the ManuAI project entry, and
@@ -349,3 +438,11 @@ See §7.5.
 | 42 | Work-entry logos sit in a shared fixed-width slot, so all the company names keep one left edge | Firstmate's visual review of the preview, 2026-08-21. Decision 41 shipped with `width: auto` on the mark, so each logo set its own width and pushed its company name to a different x — 387/372/372/378 across the four marked entries, with Bizybear falling back to the panel edge at 344. A 43px ragged edge in a five-item list (the panel held five entries until decision 43), on a page whose stated design is negative space and restraint, read as broken rather than deliberate. The layout the owner approved showed the names sharing one left edge with Bizybear's slot simply empty: a gap where a logo would be, not a line starting further left than every other line. The slot is reserved on the Work `.entry-title` as `padding-left: 43px` — the widest mark (996 Ventures at 35px) plus the existing 8px gap, so nothing narrowed — and the mark is pulled back into that gutter with a matching negative margin. `object-fit: contain` with `object-position: left center` keeps each mark's own aspect ratio inside the slot, left-aligned; no logo is stretched, cropped, or letterboxed, and no image file changed. Scoped to `[data-panel="work"]` because the Projects panel shares `.entry-title` and must not gain a gutter (verified: Projects titles keep `padding-left: 0` at x=344). This corrects decision 41's implementation; it does not reopen any of its decisions — full colour, the four-of-five coverage, and Bizybear's empty slot all stood at the time, and full colour still does. The slot mechanism itself is unchanged by decision 44, which only widens it from 43px to 40px-plus-gap and reserves it on a grid column instead of the title's padding |
 | 43 | **Bizybear removed from the Work panel.** The company no longer appears anywhere on the site | Owner's instruction 2026-08-24. The Journey dropped the entry earlier (§11.1); this removes the remaining one, on the front door's Work tab, so the four entries left are 996 Ventures, Corgi, ScottyLabs, and Scurry. Not an oversight to correct back: the Work tab is a curated list, the same way the Journey is a curated set of chapters. The prose the removal falsified was corrected in the same pass rather than left standing — decision 40's "Bizybear stays plain text", decision 41's four-of-five coverage and empty slot, decision 42's "five company names", §11.1's account of which tab kept the entry, and `AGENTS.md`'s use of Bizybear as the worked example of an unconfirmed logo source. The **rule** that example carried is untouched and still binds: a company whose logo source the owner has not confirmed carries no mark, and no placeholder, initial, or generic glyph stands in for it (decision 30). So is decision 42's shared-slot contract — every remaining entry happens to carry a mark, but the reserved column stays, because an unmarked entry must still hold the same indent |
 | 44 | **Work-entry logos enlarged to a 40px band, superseding the 20px sizing in decisions 41 and 42** | Owner's instruction 2026-08-24. The marks read as title ornament at 20px; the owner asked for them noticeably larger, and 40px is roughly double. Every mark is fitted to a 40px square with `object-fit: contain`, so each keeps its own aspect ratio and its **long edge** lands at 40px — the three square-ish marks double, and the 996 Ventures wordmark, already width-constrained at 35px, grows to 40x23. A wide wordmark reading smaller than a square mark at the same long edge is the honest cost of not distorting it, not a defect. At 40px a mark no longer fits the title's 27.19px line box, so decision 41's inline image with a `vertical-align` nudge is replaced by a two-column grid on `[data-panel="work"] .entry` — a fixed `40px` column, a `16px` gap, and the mark spanning the title and meta rows, vertically centred against that block. The `<img>` therefore moves out of `.entry-title` and becomes a direct child of the entry; it stays outside the `<a>`, keeps `alt=""`, and its intrinsic `width`/`height` attributes are unchanged. The grid stays scoped to `[data-panel="work"]` so the Projects panel, which shares `.entry` and `.entry-title`, gains no column (verified: Projects titles hold x=264, the panel edge). **Nothing else about decision 41 moves** — the marks are still full colour, still unaltered, and still have nothing drawn around them: no card, border, shadow, panel, or background. Decision 42's shared-left-edge contract is met by the grid column instead of the title's `padding-left`. No image file changed: 996 Ventures at 70px and ScottyLabs at 37px still cover a 40px display box at ~1.75x and ~0.93x, close enough that no re-export was warranted, and ScottyLabs has no confirmed source on hand to re-export from anyway — decision 30's no-guessing rule covers logo sources, so re-fetching one from the web was not an option. Checked at 1280px and at the 560px breakpoint: 40px plus a 16px gap leaves the title uncrowded at 375px, so the breakpoint needed no override. Decision 36's 880px `--measure` token is unchanged — it was set for the About paragraph's readability, which the Work body was never the constraint on — but the 40px column and its 16px gap sit inside that measure, so the Work panel's effective body measure is 824px, and the entry's title, meta, and body now share one left edge rather than the body starting flush at the panel edge. Firstmate raised that indent as a side effect on 2026-08-24 and the owner reviewed it the same day and kept it, so it is the intended layout, not a consequence to undo. The Projects panel is untouched at 880px |
+| 45 | **Projects entries become image cards, overriding §9's "no cards" and "no borders-as-styling" for that panel only** | Owner's instruction 2026-08-25. Firstmate raised the conflict with §9 explicitly before anything was built — the section prohibits cards and borders-as-styling in the same breath — and the owner chose cards anyway, so this row records the override the way decision 41 records the full-colour logos' and decision 36 the measure's. It is not an oversight to correct back. **What it grants:** a `1px` hairline border in a light neutral (`--rule`, `#dcdcdc`) around a Projects entry, and one committed screenshot filling that card. **What it does not grant:** anything to any other panel, and inside the card no shadow, no gradient, no coloured or tinted panel. The three images are committed to `projects/`, referenced relatively, and stripped of embedded metadata like every other image (decision 33); they share one aspect ratio and one pixel size (1080x450, 12:5) so the cards read as the same kind of object, and each was cropped to that ratio rather than letterboxed or stretched. Each `<img>` carries a real `alt` and explicit `width`/`height`, the opposite of the Work logos' `alt=""` (decision 41) because here the image says something the prose does not. A linked card is the click target through an empty `::after` stretched from the title's `<a>`, which keeps the visible link on the title text (decision 29) instead of flattening the prose into link colour; `.entry-links` is positioned above that overlay so PatientScope's `Repository` link stays independently clickable. Every rule is scoped to `[data-panel="projects"]`, the mirror of decision 44's scoping — verified after the change that the Work panel renders pixel-for-pixel identically, and that Work entries still carry no border, no positioning, and their 40px logo column. **Amended the same day by the owner's redirect, decisions 48–52:** ~~the title, meta, and body sit beneath the image on the resting card~~ they are revealed on hover instead (48); ~~no `border-radius`, the headshot is still the only shaped element~~ the card is rounded and is now the second (49); ~~a responsive grid, three across at the 880px measure~~ one card per row (51). Two clauses of this row survive that redirect unchanged and are restated by decision 52: **no motion** — no transition, no hover animation, no transform — and nothing else drawn inside the card |
+| 46 | **Poker Bot and the C0 Virtual Machine removed from Projects.** The panel is three entries | Owner's instruction 2026-08-25. Projects is a curated list, the same way the Work tab is (decision 43) and the Journey is a curated set of chapters (decision 31): the removal is the decision, not a gap to fill, and neither entry returns because a later session notices the repository still exists. ManuAI, PatientScope AI, and Chalk remain, in that order. §5.2 follows — the "five projects carried by the root static preview" set is retired with them |
+| 47 | ManuAI and PatientScope AI linked to confirmed destinations; **Chalk deliberately left unlinked** | Owner's confirmation 2026-08-25, logged as decision 30 requires. `https://www.youtube.com/watch?v=9Mp3-vZTWuM` for ManuAI and `https://devpost.com/software/patientscope-ai` for PatientScope AI, both verified reachable (HTTP 200, no redirect) at the time of confirmation and added to `ALLOWED_LINK_PREFIXES` exactly as given — the YouTube host carries `www.` and the Devpost host does not, and neither was normalised into the other's shape, the same care decision 40 took with Corgi and Scurry. PatientScope AI keeps its existing `Repository` link in `.entry-links`; the card link is in addition to it, not a replacement. **The owner declined to link Chalk.** No URL was confirmed for it, so it carries none: decision 30 makes an unlinked entry the correct outcome, and a future session should read the missing link as the decision it is rather than infer one from the project's screenshot or find one on the web. Its card carries no anchor at all, so nothing in it takes a pointer cursor or implies a click. **Amended by decision 48:** it is not otherwise inert — ~~no hover state~~ its overlay opens on hover and focus exactly like the other two, because a project the visitor cannot click is still a project they must be able to read. Having no focusable descendant, it takes `tabindex="0"` so a keyboard user reaches it; that attribute exists for the reveal, not to imply a destination |
+| 48 | **A Projects card shows the image alone; the title and description are revealed on hover, on focus, and shown permanently on small screens** | Owner's redirect 2026-08-25, superseding decision 45's resting layout: "can we instead have it so all the cards just show the image and they're rounded and more aesthetic? When you hover over the card you see the description." So the card *is* the screenshot at rest, and the title, `entry-meta` line, one-sentence description, and any `.entry-links` row sit in an overlay over a **flat** translucent white scrim — flat because §9 and CI both reject a gradient, and white because it keeps the site's own colour language (near-black text, grey meta, the link accent) rather than introducing white-on-dark. The scrim is `rgba(255, 255, 255, 0.94)`, chosen so the composite is effectively white under *any* screenshot: the images run from ManuAI's dark camera feed to PatientScope's white dashboard, and at that alpha the worst case a black pixel can produce is `rgb(240, 240, 240)`, which holds the body text at 16.6:1, the grey meta at 4.7:1, and the link accent above 8:1. Contrast therefore does not depend on which image the text lands over, which is the failure mode a lighter scrim would have had. **Three access paths are part of the decision, not polish on top of it**, because hover-only content is unreachable for most of the ways people use a site: `:focus-within` opens the overlay for a keyboard user (Chalk, having no link and so no focusable descendant, takes `tabindex="0"` to earn a tab stop); at the 560px breakpoint and below the overlay stops being an overlay and lays out permanently beneath the image, unscrimmed, with no tap-to-reveal hack, because phones do not hover; and the text is real markup in the DOM at all times, hidden only by `opacity` — never `display: none`, `visibility: hidden`, `aria-hidden`, CSS `content`, or script — so a screen reader reads all three descriptions with no interaction at all. That makes the Projects panel the first part of this site to carry a genuine interactive state: **its visually hidden text is live markup, not leftovers, and a future session must not read it as dead and delete it.** Verified at 1280px that all three overlays open and stay legible over their own screenshot, that every tab stop opens its card and shows a focus ring, and at 560px and 375px that nothing depends on hover |
+| 49 | **Projects cards are rounded, overriding §9's single-radius rule; the CI gate widens from one selector to two** | Owner's redirect 2026-08-25 ("rounded and more aesthetic"). The headshot had been the only element on the site permitted a non-zero `border-radius` since decision 28, and decision 45 had explicitly kept it that way a few hours earlier; this overrides that. The card takes `border-radius: 10px` plus `overflow: hidden`, which is what makes the radius clip the screenshot so no square image corner pokes out past it. **The headshot is no longer the only rounded element on the site, and that is now a two-item list rather than a principle** — it grants nothing to any other component, and a radius anywhere else is still a defect. `check-design-rules.py`'s `no-decoration` rule was widened the narrow way, by selector: a `RADIUS_EXEMPT_SELECTORS` set naming `.masthead img` and `[data-panel="projects"] .entry` and nothing else. The check also tightened while it moved — it now matches the whole selector, comma part by comma part, where it used to test for `.masthead img` as a substring, because `[data-panel="projects"] .entry-title` shares a prefix with the card and must not inherit the permission, and `.masthead img, .anything-else` must not launder a radius onto the second half. Nothing else in that rule moved: the `transition`, `@keyframes`, `animation`, gradient, and shadow branches are untouched. `.github/scripts/test-design-rules.py` gained twelve cases pinning both halves of the new boundary — both exempt selectors pass, a zero radius passes anywhere, and `.entry`, `[data-panel="work"] .entry`, the shared-prefix selectors, and a mixed comma group all still fail — for the same reason decision 37 pinned the `<link>` rule: a widening that quietly permitted a radius everywhere would still pass CI, and that test file exists to catch exactly that |
+| 50 | **Projects descriptions condensed to one sentence each** | Owner's redirect 2026-08-25 — "if any of them are longer than a couple of sentences, then squish them down into just one sentence" — applied to all three, which were each two sentences of 30 to 40 words and too long for any overlay to carry. Condensing was cutting, not rewriting: no capability, metric, or claim appears that the longer prose did not already carry. What was deliberately kept through the cut: **ManuAI's 1st place at the Y Combinator × Moss Conversational AI Hackathon**, which is the strongest credential on the page and which the About paragraph already refers to, so dropping it would have left that reference dangling (decision 39 put the award in this entry for the same reason); PatientScope AI as ICU clinical decision support built on MIMIC-IV; and Chalk as an AI voice tutor that draws synced whiteboard animations. What went: ManuAI's hackathon sponsor, PatientScope's CTE and split-hosting sentence, and Chalk's JSON-format and renderer sentence. The `.entry-meta` date-and-stack line is unchanged — it was already short — and moves into the overlay with the title. Decision 35's "short entries stay short and nothing is invented to replace them" governs this the same way it governed the original cut |
+| 51 | **Projects cards lay out one per row at full measure**, closing the grid-width question | Owner's decision 2026-08-25, settling a question firstmate had raised and paused on. Three across put each image at about **234x97**, which is unreadable and defeats the point of having images at all; one per row gives roughly **752x313**. The panel's 24px rhythm between cards is unchanged, and the grid is now a single `1fr` column at every width rather than an `auto-fit` track — which also retires the two-column middle range decision 45 shipped. The 560px breakpoint no longer needs a column override, because one column is the layout everywhere; what it overrides now is the reveal (decision 48). Checked for horizontal overflow at 1280px, 560px, and 375px: none |
+| 52 | **Motion stayed at zero through the hover redirect; §9's motion rule and CI's `transition` ban were not relaxed** | Recorded because the opposite is the obvious thing for a future session to assume. A hover reveal is the classic reason to reach for an ease, and both §9 ("motion is near-zero") and `check-design-rules.py`'s `no-decoration` rule (which rejects any `transition:` outright) were left exactly as they were. The reveal is an `opacity` switch with no transition, no fade, no transform, and no `@keyframes` — measured in the browser as `transition-duration: 0s` on the overlay. This is deliberate and is not a thing to improve: if the design is ever judged to fail without easing, that is an owner decision to reopen, not an implementation gap to close. `test-design-rules.py` now pins it directly, asserting that a `transition` and a gradient scrim on the overlay's own selector both still fail |
