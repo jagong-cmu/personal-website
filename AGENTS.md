@@ -87,8 +87,9 @@ so the visible link stays on the title text. Chalk has no confirmed destination,
 no anchor and nothing in it implies a click — that absence is decision 47, not a gap to fill —
 and its `tabindex="0"` exists solely so a keyboard user can open its reveal. Descriptions are
 one sentence each (decision 50); ManuAI's 1st-place hackathon line was kept through that cut on
-purpose and the About paragraph depends on it. Cards are one per row (decision 51): three
-across was measured at about 234x97 per image and rejected as unreadable. All three images
+purpose; the About paragraph no longer mentions it, so that entry is now the award's only
+home on the site (decision 56). Cards are one per row (decision 51): three across was
+measured at about 234x97 per image and rejected as unreadable. All three images
 share one ratio and one pixel size on purpose — re-crop, never letterbox or stretch, if a
 fourth is added. Each `projects/` `<img>` carries `loading="lazy"` alongside its intrinsic
 `width`/`height` (decision 54): the three PNGs are 762KB together and `display: none` on the
