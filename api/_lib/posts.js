@@ -98,6 +98,23 @@ async function load(slug) {
   return null;
 }
 
+/**
+ * Which of a slug's files are really there: `{ draft, published }`.
+ *
+ * `load` answers "which post is this" and stops at the first file it finds. A write needs
+ * the other question — which paths exist — because a delete staged for a path that is not
+ * in the tree is rejected by the Git Data API, and because a slug nothing occupies is not
+ * the same as one whose draft happens to be missing.
+ */
+async function locate(slug) {
+  if (!isValidSlug(slug)) return { draft: false, published: false };
+  const [source, draft] = await Promise.all([
+    readFile(sourcePath(slug)),
+    readFile(draftPath(slug)),
+  ]);
+  return { draft: draft !== null, published: source !== null };
+}
+
 function slugsIn(names) {
   return names
     .filter((name) => name.endsWith('.md'))
@@ -143,6 +160,7 @@ module.exports = {
   pagePath,
   publicUrl,
   load,
+  locate,
   list,
   compare,
 };

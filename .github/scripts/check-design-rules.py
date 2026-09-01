@@ -163,6 +163,28 @@ def styles_of(text):
     return [strip_comments(m.group(1)) for m in re.finditer(r"<style[^>]*>(.*?)</style>", text, re.S)]
 
 
+def css_lines_of(text):
+    """(line number, CSS) for every line of actual CSS on a page: the contents of each
+    <style> block, plus the value of each inline `style=` attribute.
+
+    The rules that scan for declarations use this rather than the raw page, because a page's
+    prose is not CSS. A post's body is the owner's writing and its rendered code blocks, so
+    a post that merely mentions `transition:` or shows a `box-shadow` in a fenced example
+    would otherwise fail a rule it does not break — and it would fail after the publish
+    commit had already landed and deployed, with nothing to fix. Inline `style=` is real CSS
+    wherever it appears and stays covered; `blog.html` sets the `.note` margin with one.
+
+    Comments are stripped a line at a time so the numbers still point at the source line."""
+    found = []
+    for m in re.finditer(r"<style[^>]*>(.*?)</style>", text, re.S):
+        first = line_of(text, m.start(1))
+        for offset, line in enumerate(m.group(1).splitlines()):
+            found.append((first + offset, strip_comments(line)))
+    for m in re.finditer(r"""(?<![\w-])style\s*=\s*["']([^"']*)["']""", text, re.I):
+        found.append((line_of(text, m.start()), strip_comments(m.group(1))))
+    return found
+
+
 def css_blocks(css):
     """(selector, body) for each top-level rule. Good enough for a hand-written sheet."""
     return [(m.group(1).strip(), m.group(2)) for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css)]
@@ -257,7 +279,7 @@ def check_white_background(path, text):
              "No `background: #FFFFFF` declaration found. The page background is pure white, "
              "not cream, sand, off-white, or grey.")
 
-    for n, line in lines_of(text):
+    for n, line in css_lines_of(text):
         if re.search(r"prefers-color-scheme", line, re.I):
             fail("pure-white", path, n,
                  "prefers-color-scheme block found. The site is white; there is no dark mode.")
@@ -267,7 +289,7 @@ def check_white_background(path, text):
 # Rule 3 — one system font family
 # --------------------------------------------------------------------------------------
 def check_font_family(path, text):
-    for n, line in lines_of(text):
+    for n, line in css_lines_of(text):
         if re.search(r"@font-face", line, re.I):
             fail("system-font-only", path, n, "@font-face loads a custom font. The stack is system fonts only.")
         if re.search(r"fonts\.googleapis\.com|fonts\.gstatic\.com|use\.typekit|fonts\.bunny\.net", line, re.I):
@@ -310,8 +332,7 @@ def check_font_sizes(path, text):
 # Rule 5 — no decoration
 # --------------------------------------------------------------------------------------
 def check_no_decoration(path, text):
-    for n, line in lines_of(text):
-        stripped = strip_comments(line)
+    for n, stripped in css_lines_of(text):
         if re.search(r"box-shadow\s*:\s*(?!none)", stripped, re.I):
             fail("no-decoration", path, n, "box-shadow is not permitted.")
         if re.search(r"text-shadow\s*:\s*(?!none)", stripped, re.I):

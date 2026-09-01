@@ -21,6 +21,12 @@ quietly falling outside the walk, and `admin/` quietly falling inside it — and
 leak back onto the hand-written pages or widen past that one half of the rule. All three are
 pinned below, along with the rules that keep a draft from ever being served.
 
+The same work narrowed the declaration scans to actual CSS — <style> contents and inline
+`style=` attributes — because a post's body is prose and rendered code blocks, and a post
+that merely writes about `transition:` was failing a rule it does not break, after the
+publish commit had already landed. That narrowing is the easiest of all of these to widen
+back by accident or to over-narrow into uselessness, so both halves are pinned too.
+
 Standard library only, same as the checker. Run it from the repository root:
 
     python3 .github/scripts/test-design-rules.py
@@ -247,6 +253,99 @@ class CuratedLinksTest(unittest.TestCase):
     def test_data_href_blocked_in_both_modes(self):
         for curated in (True, False):
             self.assertTrue(self.failures_for('<a href="data:text/html,x">x</a>\n', curated), curated)
+
+
+class CssOnlyScanTest(unittest.TestCase):
+    """The declaration scans read CSS, not the page.
+
+    A post's body is the owner's prose and its rendered code blocks, so a post that writes
+    ABOUT `transition:` — or shows a `box-shadow` in a fenced example — must pass. It would
+    otherwise go red after the publish commit had landed and deployed, on a page that
+    violates nothing. The other half matters just as much: the same declaration inside a
+    <style> block or an inline `style=` attribute is real CSS on any page and still fails."""
+
+    def failures_for(self, markup):
+        rules.failures.clear()
+        rules.check_white_background("blog/a-post.html", "<style>body { background: #FFFFFF; }</style>\n" + markup)
+        rules.check_font_family("blog/a-post.html", markup)
+        rules.check_no_decoration("blog/a-post.html", markup)
+        return list(rules.failures)
+
+    def assertProsePasses(self, body):
+        found = self.failures_for(body)
+        self.assertEqual([], found, f"expected {body!r} to pass, but it was rejected:\n"
+                                    + "\n".join(found))
+
+    def assertCssFails(self, declaration):
+        for markup in (f"<style>\n.x {{ {declaration} }}\n</style>\n",
+                       f'<p style="{declaration}">x</p>\n'):
+            found = self.failures_for(markup)
+            self.assertTrue(found, f"expected {markup!r} to be rejected, but it passed")
+
+    # ---- a post that writes about CSS is not a post that uses it ----------------------
+
+    def test_a_paragraph_about_a_declaration_passes(self):
+        self.assertProsePasses("<p>The reveal has no <code>transition: opacity .2s</code> on it.</p>\n")
+
+    def test_a_code_block_showing_declarations_passes(self):
+        self.assertProsePasses(
+            "<pre><code>.card {\n  box-shadow: 0 2px 8px #0002;\n"
+            "  transition: opacity 120ms;\n  background: linear-gradient(#fff, #eee);\n"
+            "}\n@keyframes pulse { to { opacity: 1; } }\n</code></pre>\n")
+
+    def test_prose_naming_a_font_host_passes(self):
+        self.assertProsePasses("<p>The site loads nothing from fonts.googleapis.com.</p>\n")
+
+    def test_prose_naming_a_media_query_passes(self):
+        self.assertProsePasses("<p>There is no prefers-color-scheme block anywhere.</p>\n")
+
+    def test_a_code_block_showing_font_face_passes(self):
+        self.assertProsePasses("<pre><code>@font-face { src: url(x.woff2); }</code></pre>\n")
+
+    # ---- the same declarations in real CSS still fail ---------------------------------
+
+    def test_box_shadow_in_css_still_fails(self):
+        self.assertCssFails("box-shadow: 0 2px 8px #0002;")
+
+    def test_text_shadow_in_css_still_fails(self):
+        self.assertCssFails("text-shadow: 0 1px 0 #000;")
+
+    def test_transition_in_css_still_fails(self):
+        self.assertCssFails("transition: opacity .2s;")
+
+    def test_animation_in_css_still_fails(self):
+        self.assertCssFails("animation: pulse 1s infinite;")
+
+    def test_gradient_in_css_still_fails(self):
+        self.assertCssFails("background: linear-gradient(#fff, #eee);")
+
+    def test_keyframes_in_a_style_block_still_fails(self):
+        found = self.failures_for("<style>@keyframes pulse { to { opacity: 1; } }</style>\n")
+        self.assertTrue(found)
+
+    def test_font_face_in_a_style_block_still_fails(self):
+        found = self.failures_for("<style>@font-face { src: url(x.woff2); }</style>\n")
+        self.assertTrue(found)
+
+    def test_a_font_host_in_a_style_block_still_fails(self):
+        found = self.failures_for(
+            "<style>body { font-family: url(https://fonts.googleapis.com/x); }</style>\n")
+        self.assertTrue(found)
+
+    def test_dark_mode_in_a_style_block_still_fails(self):
+        found = self.failures_for(
+            "<style>@media (prefers-color-scheme: dark) { body { background: #000; } }</style>\n")
+        self.assertTrue(found)
+
+    # ---- the line number still points at the source line ------------------------------
+
+    def test_the_reported_line_is_the_declaration_s_own(self):
+        rules.failures.clear()
+        rules.check_no_decoration(
+            "index.html", "<html>\n<head>\n<style>\nbody { color: #111; }\n"
+                          ".x { transition: opacity .2s; }\n</style>\n</html>\n")
+        self.assertEqual(1, len(rules.failures))
+        self.assertIn("index.html:5", rules.failures[0])
 
 
 class SiteFixture(unittest.TestCase):

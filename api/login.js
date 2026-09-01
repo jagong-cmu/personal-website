@@ -93,12 +93,18 @@ module.exports = async function handler(req, res) {
     return fail(res, 400, 'Bad request.');
   }
 
+  let cookie;
   try {
     if (!passwordMatches(body && body.password)) {
       recordFailure(key, now);
       await sleep(FAILURE_DELAY_MS);
       return fail(res, 401, 'Incorrect password.');
     }
+    // Signing the session needs `SESSION_SECRET`, so it sits under the same guard as the
+    // comparison that needs `ADMIN_PASSWORD`. Outside it, a deployment with one variable
+    // set and the other missing would accept the password and then throw past this
+    // handler, and the log line below — the only account anyone gets of it — never runs.
+    cookie = issuedCookie(now);
   } catch (error) {
     // `ADMIN_PASSWORD` or `SESSION_SECRET` is not configured. Logged, never described to
     // the caller — an unconfigured gate must not advertise itself as one.
@@ -107,5 +113,5 @@ module.exports = async function handler(req, res) {
   }
 
   failures.delete(key);
-  return send(res, 200, { authenticated: true }, { 'Set-Cookie': issuedCookie(now) });
+  return send(res, 200, { authenticated: true }, { 'Set-Cookie': cookie });
 };

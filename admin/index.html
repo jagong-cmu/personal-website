@@ -255,6 +255,17 @@ label > span { display: block; color: var(--grey); margin-bottom: 4px; }
     };
   }
 
+  // The server refuses to write a new post over a slug that is already taken, and only the
+  // editor knows which of the two this is: the slug field is frozen once a post has landed,
+  // so an unfrozen one is always a post the repository has never seen. It is sent
+  // separately from `collect()` so the unsaved-changes check compares the post, not the
+  // request.
+  function payload() {
+    var body = collect();
+    body.create = !state.saved;
+    return body;
+  }
+
   function renderList() {
     var list = $('postlist');
     list.textContent = '';
@@ -290,12 +301,18 @@ label > span { display: block; color: var(--grey); margin-bottom: 4px; }
     renderList();
   }
 
-  async function open(slug) {
+  // Opening a post is a request like any other, so it reports like one. Called straight
+  // from the list rather than through a form submit, it would otherwise fail silently: the
+  // row would highlight, the form would not change, and the reason would be visible only in
+  // the console.
+  function open(slug) {
     if (slug === state.slug) return;
     if (!mayDiscard()) return;
-    say('');
-    var data = await api('/api/posts?slug=' + encodeURIComponent(slug));
-    fill(data.post);
+    run('Opening', async function () {
+      var data = await api('/api/posts?slug=' + encodeURIComponent(slug));
+      fill(data.post);
+      say('');
+    });
   }
 
   function invalid() {
@@ -319,7 +336,7 @@ label > span { display: block; color: var(--grey); margin-bottom: 4px; }
   $('form').addEventListener('submit', function (event) {
     event.preventDefault();
     run('Saving', async function () {
-      var result = await api('/api/posts', { method: 'POST', body: JSON.stringify(collect()) });
+      var result = await api('/api/posts', { method: 'POST', body: JSON.stringify(payload()) });
       await refresh();
       fill(result.post);
       say(result.commit ? 'Saved.' : 'No change to save.');
@@ -329,7 +346,7 @@ label > span { display: block; color: var(--grey); margin-bottom: 4px; }
   $('publish').addEventListener('click', function () {
     if (invalid()) return;
     run('Publishing', async function () {
-      var result = await api('/api/publish', { method: 'POST', body: JSON.stringify(collect()) });
+      var result = await api('/api/publish', { method: 'POST', body: JSON.stringify(payload()) });
       await refresh();
       fill(result.post);
       say('Published. It is live once Vercel finishes the deploy, usually under a minute.');
@@ -413,11 +430,18 @@ label > span { display: block; color: var(--grey); margin-bottom: 4px; }
     }
   });
 
+  // A content load that fails with a valid session is a server or GitHub problem, not a
+  // signed-out one. Reporting it on the status line keeps the owner in the editor; falling
+  // back to the gate would blame the password for something a password cannot fix.
   async function start() {
     showEditor();
     fill({});
-    await refresh();
-    say('');
+    try {
+      await refresh();
+      say('');
+    } catch (error) {
+      if (!$('editor').hidden) say(error.message, 'error');
+    }
   }
 
   (async function boot() {

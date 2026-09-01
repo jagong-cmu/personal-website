@@ -89,12 +89,16 @@ repository**:
 Open `index.html` in a browser; there is nothing to install. The `api/` functions need a
 runtime, so exercise them with `vercel dev` or on a preview deployment.
 
-Before pushing any visual change, run both checkers — CI runs the same two on every push:
+Before pushing any visual change, run the checkers — CI runs the same three on every push:
 
 ```sh
 python3 .github/scripts/check-design-rules.py
 python3 .github/scripts/test-design-rules.py
+node .github/scripts/test-api.js
 ```
+
+The third exercises the content operations against a stub GitHub API, so a publish that
+would be rejected upstream fails here first rather than on a live post.
 
 ## License
 

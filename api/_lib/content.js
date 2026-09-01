@@ -48,6 +48,24 @@ function validate(input) {
   return { slug, title, date, summary, markdown };
 }
 
+const SLUG_TAKEN = 'A post already exists at that slug. Choose a different title or slug.';
+
+/**
+ * Where the slug's files are, having first refused to write a NEW post over an existing one.
+ *
+ * The editor derives a slug from the title and only freezes it once the post has been
+ * saved, so two posts whose titles slugify alike would otherwise land on each other and the
+ * first would survive only in git history. The server cannot tell a second post from a
+ * re-save of the first by looking at the repository — both are a slug with a file behind it
+ * — so the caller says which it is doing, and an edit is left exactly as it was.
+ */
+async function claimSlug(input, slug) {
+  const where = await posts.locate(slug);
+  const creating = !!(input && input.create === true);
+  if (creating && (where.draft || where.published)) throw new ContentError(409, SLUG_TAKEN);
+  return where;
+}
+
 /**
  * Rewrite the two index files for a given published set, and add them to `changes`.
  * `blogHtml` is the page as it stands; its stylesheet and masthead are what every post
@@ -81,14 +99,15 @@ async function publishedAfter(slug, next) {
  *
  * A draft is written to `drafts/` and touches nothing else. A post that is already
  * published is re-rendered in the same commit, because a published page must never be
- * stale relative to the source it came from.
+ * stale relative to the source it came from. A post being created for the first time is
+ * refused if its slug is already occupied; see `claimSlug`.
  */
 async function save(input) {
   const post = validate(input);
-  const existing = await posts.load(post.slug);
+  const where = await claimSlug(input, post.slug);
   const changes = {};
 
-  if (existing && existing.published) {
+  if (where.published) {
     const blogHtml = await loadIndexPage();
     changes[posts.sourcePath(post.slug)] = posts.serialize(post);
     changes[posts.pagePath(post.slug)] = render.postPage(post, blogHtml);
@@ -103,10 +122,15 @@ async function save(input) {
 /** Move a draft to `blog/`, render its page, and relist it. One commit. */
 async function publish(input) {
   const post = validate(input);
+  const where = await claimSlug(input, post.slug);
   const blogHtml = await loadIndexPage();
   const changes = {};
 
-  changes[posts.draftPath(post.slug)] = null;
+  // The draft is staged for deletion only when there is one. A tree entry with a null sha
+  // is rejected for a path that is not in the base tree, so the ordinary first publish —
+  // written and published without ever pressing Save draft — would fail on a file that was
+  // never created, and so would every republish after the first moved the draft out.
+  if (where.draft) changes[posts.draftPath(post.slug)] = null;
   changes[posts.sourcePath(post.slug)] = posts.serialize(post);
   changes[posts.pagePath(post.slug)] = render.postPage(post, blogHtml);
   await reindex(changes, await publishedAfter(post.slug, { ...post, published: true }), blogHtml);

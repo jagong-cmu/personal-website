@@ -52,7 +52,16 @@ that; do not narrow the pattern.
 
 **Every write is one commit** via the Git Data API (`api/_lib/github.js`), because a
 half-applied publish leaves a page listed with nothing behind it. The Contents API cannot do
-this — it commits per file.
+this — it commits per file. A tree entry with a null sha deletes a path, and GitHub rejects
+one for a path that is not in the base tree, so a change set is built from what
+`posts.locate()` reports is actually there — never from an assumption that a draft exists.
+
+**A slug is claimed, not overwritten.** `content.js`'s `claimSlug()` refuses with a 409 when
+the caller is creating a post and the slug already holds one, in `drafts/` or `blog/`. The
+server cannot tell a second post from a re-save of the first by looking at the repository,
+so the editor says which it is doing — `create: true` while the slug field is still unfrozen
+— and an edit keeps working exactly as before. Losing a post to a title coincidence is
+recoverable only from git history, which is why this rejects rather than merges.
 
 **The slug is the only untrusted input that reaches a path.** It is validated once, in
 `api/_lib/posts.js`; every write path is built from it there. Nothing accepts a path from the
@@ -60,7 +69,12 @@ browser.
 
 **Markdown is escaped, never passed through** (`api/_lib/markdown.js`). The public pages
 carry no author-supplied scripts and CI enforces it; the editor must not become the hole in
-that. It is deliberately narrow — do not grow it into a general Markdown engine.
+that. It is deliberately narrow — do not grow it into a general Markdown engine. A post page
+carries one `<script>` all the same, its JSON-LD block, and that is the one place a post's
+own words reach the output without `escapeHtml`: they go through `render.js`'s
+`jsonForScript()` instead, because an HTML parser ends a `<script>` at the first `</script`
+whatever the JSON quoting around it. Valid JSON is not the same thing as safe in a script
+element; `.github/scripts/test-api.js` pins both.
 
 **`admin/` is exempt from the public design rules**, by name in `check-design-rules.py`'s
 `EXEMPT_DIRS` and pinned by its tests — `PRD.md` §7.1 grants it. Post pages under `blog/`
@@ -207,7 +221,12 @@ the checker that are easy to loosen by accident — which `<link>` elements
 `zero-external-requests` permits (`PRD.md` decision 37), which selectors may carry a
 `border-radius` (decision 49), and, since the checker started *discovering* public pages
 rather than listing three, that post pages fall inside the walk and `admin/` falls outside
-it. Run both.
+it. The rules that scan for declarations read `css_lines_of()` — `<style>` contents and
+inline `style=` values — and not the raw page, because a post's body is prose and rendered
+code blocks and a post *about* `transition:` breaks nothing; widening them back to the whole
+page would fail CI on a live post after the publish commit had landed. `node
+.github/scripts/test-api.js` is the third check in the same job and covers the `api/`
+functions against a stub GitHub API. Run all three.
 
 Outbound links are allowlisted by destination in that script (`ALLOWED_LINK_PREFIXES`), so
 any new absolute `href` on a hand-written page fails CI until it is added. The gate is

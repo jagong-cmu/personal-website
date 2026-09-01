@@ -24,6 +24,22 @@ const EMPTY_CLAUSE = ' No posts yet; the first is being written.';
 const DEFAULT_NOTE =
   'Notes on what I&rsquo;m building, mostly about AI systems and the people who use them.';
 
+// JSON that is safe inside a `<script>` element, which is not the same thing as valid
+// JSON. An HTML parser ends the element at the first `</script`, whatever the JSON quoting
+// around it, so a title that merely mentions one would truncate this block and drop the
+// rest of the post's metadata into the page as live markup — the one place in this file
+// where author text would reach the output without going through `escapeHtml`. U+2028 and
+// U+2029 are escaped for the same reason from the other side: JSON allows them raw and
+// JavaScript reads them as line terminators.
+function jsonForScript(value) {
+  return JSON.stringify(value)
+    .replace(/&/g, '\\u0026')
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 function extractBlock(html, tag) {
   const match = html.match(new RegExp(`<${tag}[^>]*>[\\s\\S]*?</${tag}>`, 'i'));
   return match ? match[0] : null;
@@ -84,10 +100,10 @@ function postPage(post, blogHtml) {
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": ${JSON.stringify(post.title)},
-  "description": ${JSON.stringify(post.summary)},
-  "datePublished": ${JSON.stringify(post.date)},
-  "url": ${JSON.stringify(url)},
+  "headline": ${jsonForScript(post.title)},
+  "description": ${jsonForScript(post.summary)},
+  "datePublished": ${jsonForScript(post.date)},
+  "url": ${jsonForScript(url)},
   "image": "${SITE}/headshot.jpg",
   "author": {
     "@type": "Person",
@@ -207,4 +223,4 @@ function sitemap(currentXml, posts) {
   return `${head}${SITEMAP_MARKER}\n${entries}\n</urlset>\n`;
 }
 
-module.exports = { EMPTY_CLAUSE, postPage, blogIndex, sitemap, reparent, extractBlock };
+module.exports = { EMPTY_CLAUSE, postPage, blogIndex, sitemap, reparent, extractBlock, jsonForScript };
