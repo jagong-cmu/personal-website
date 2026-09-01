@@ -44,16 +44,16 @@ Explicitly out of scope. Each was considered and declined.
 
 **The front door is a tabbed shell, not a long scroll.** One persistent header — name,
 one line, links — with a row of plain text tabs beneath it. Clicking a tab swaps the
-content area in place. Each tab is a real route so it can be linked and bookmarked.
+content area in place. Each tab carries its own URL so it can be linked and bookmarked.
 
 ```
 /                 Front door shell. Opens on About.
-  /about          About — four short paragraphs
-  /work           Work experience
-  /projects       Projects
-/journey          Era-chaptered photographic timeline  [noindexed]
-/blog             Post index → /blog/[slug]
-/admin            Authenticated content management  [noindexed, nofollow]
+  /#about         About — four short paragraphs
+  /#work          Work experience
+  /#projects      Projects
+/journey.html     Era-chaptered photographic timeline  [noindexed]
+/blog.html        Post index → /blog/<slug>.html
+/admin            Password-gated content management  [noindexed, nofollow]
 ```
 
 Only ONE section is on screen at a time. Nothing stacks. A visitor who wants work
@@ -62,9 +62,18 @@ experience clicks Work and sees work experience on an otherwise empty page.
 Journey and Blog sit in the same tab row but are full destinations rather than panels,
 because they are long-form and scroll on their own.
 
+The URLs above are the shipped ones. That block used to give the extensionless shape the
+Next.js rebuild would have moved to (`/journey`, `/blog`, `/blog/[slug]`); decision 58
+retired the rebuild, no `vercel.json` rewrites anything, and `sitemap.xml` and every
+masthead name the `.html` paths. Changing them now would break links already in the wild.
+
+**A post's slug is `^[a-z0-9]+(-[a-z0-9]+)*$`, at most 80 characters.** It is validated in
+one place, `api/_lib/posts.js`, because every write path in the admin is built from it — an
+unvalidated slug would be a path-traversal hole, not merely an ugly URL.
+
 ## 5. Content model
 
-All content is MDX or structured data files committed to the repository. There is no database anywhere in this system.
+All content is Markdown or structured data files committed to the repository — MDX went with the framework that would have read it (decision 58). There is no database anywhere in this system.
 
 ### 5.1 Work experience — file-edited
 Company, role, date range, and one to two sentences of prose describing the work. No bullet
@@ -159,7 +168,14 @@ The image convention:
   no-guessed-URLs rule governs which is which.
 
 ### 5.3 Blog — admin-managed
-Frontmatter: title, slug, date, summary, draft flag, optional cover image. Body is MDX. **Ships empty.** Posts are occasional and go up when one is written; there is no post required at launch (decision 34).
+Frontmatter: **title, date, summary** — three keys, one per line, each value a JSON string so
+a colon or a quote in a title needs no escaping rules of its own (`api/_lib/posts.js`). There
+is no slug key and no draft flag: the slug is the filename and a post's state is its location,
+`drafts/<slug>.md` unpublished and `blog/<slug>.md` published (decision 60). No cover image
+field exists while the image pipeline is unbuilt (§6, §7.3). Body is Markdown, converted
+server-side by `api/_lib/markdown.js` — deliberately a narrow converter, not MDX and not a
+general Markdown engine. **Ships empty.** Posts are occasional and go up when one is
+written; there is no post required at launch (decision 34).
 
 ### 5.4 Journey — admin-managed
 Grouped into **eras** — chapters such as childhood, high school, each CMU year. Each entry carries:
@@ -261,6 +277,13 @@ Runs at upload/build time, never per-request:
 2. Generate fixed-width AVIF/WebP variants with sharp.
 3. Serve as static files via plain `srcset`.
 
+**Steps 2 and 3 presume a build step, and decision 58 removed it**, so this pipeline is
+unbuilt (§6) and sharp cannot be added without the `package.json` that decision refuses.
+Step 1 binds anyway and is done by hand today: every committed image is stripped before it
+lands, with the exact `magick` invocation recorded in `AGENTS.md`, and CI's
+`no-image-metadata` rule fails the build on anything that still carries metadata. Automating
+it again needs a mechanism this section no longer has, which is an owner decision to take.
+
 **Vercel's runtime image optimizer is never invoked.** It is metered on the Hobby plan, the account already carries eight projects, and a photo-heavy Journey is precisely the workload that would exhaust it. Pre-generating variants makes the quota structurally irrelevant.
 
 ### 7.4 Rendering
@@ -270,30 +293,34 @@ dynamic behind it are the functions in `api/`, which are authenticated on every 
 (§6, decision 59).
 
 ### 7.5 Domain
-`jonathangong.com` is registered and connected. Apex and `www` both resolve, and the static
-preview (§11.1, `README.md`) serves from it through Vercel. Verified live 2026-08-20.
+`jonathangong.com` is registered and connected. Apex and `www` both resolve, and the
+hand-written static site (`README.md`) serves from it through Vercel. Verified live
+2026-08-20.
 
 ### 7.6 Discoverability metadata
-Generated per route from the content, never hand-copied between pages:
+Distinct per page and never copied from another page. Decision 58 left this to two
+mechanisms rather than a framework's: the `<head>` of a hand-written page is written once by
+hand, and a post page's `<head>` is generated from the post's own frontmatter by
+`api/_lib/render.js` at publish time. `stylesheets-identical` binds the stylesheets, not the
+heads — they differ on purpose:
 
 1. **Per-page `description`, `author`, Open Graph, and Twitter card.** One description reused
-   across the site is not acceptable — every public route describes itself. Next's route
-   `metadata` export covers this natively, and `metadataBase` makes the `og:image` and
-   `og:url` values absolute without repeating the domain.
+   across the site is not acceptable — every public route describes itself. A post page gets
+   its `description`, `og:*` and `twitter:*` values from its summary and title, with the
+   domain written out in full because nothing resolves a relative URL for it.
 2. **A per-page canonical URL on the apex.** Apex and `www` both serve 200 (§7.5), so without
    one, search engines may treat the two as duplicates of each other.
 3. **`Person` structured data**, inline in the document so it costs no request: name, url,
    image, description, `alumniOf`, and `sameAs` listing **only destinations the owner has
    confirmed**. Decision 30's no-guessed-URLs rule governs structured data exactly as it
    governs links.
-4. **`robots.txt` and `sitemap.xml`**, generated from the route list (`app/robots.ts`,
-   `app/sitemap.ts`) rather than maintained by hand, so a new route cannot be silently
-   omitted.
+4. **`robots.txt` and `sitemap.xml` at the root.** There is no route list to generate them
+   from, so both files are written by hand for the hand-written pages. What could otherwise
+   be silently omitted is a post, and publishing adds its URL to `sitemap.xml` in the same
+   commit that writes the page (§6). Neither file names `/admin` (§8).
 5. **Icons at the root convention paths** — `/favicon.ico` and `/apple-touch-icon.png`.
    Browsers and iOS request both with no markup at all, so the icon survives any change to
-   the `<head>`. Next's `app/favicon.ico` convention covers the first; the second must sit in
-   `public/`, because `app/apple-icon.*` is served as `/apple-icon` and would miss the path
-   iOS actually asks for.
+   the `<head>`. Both sit at the repository root, which is the path each is asked for.
 
 **The Journey is excluded from all of it and must stay crawlable.** It gets no canonical, no
 Open Graph, no structured data, and no sitemap entry (§8). It is deliberately **not**
@@ -410,7 +437,7 @@ instruction 2026-08-20, exercising the overrule the earlier plan explicitly held
 | Stage | Output | State |
 |---|---|---|
 | 1 | Three visual directions — front door + one Journey screen, side by side | **Closed 2026-08-19.** Owner approved plain/white/empty; §9 is the result |
-| 2 | Public site built: front door, /projects, /journey, /blog | **Deployed as the static preview**, on `jonathangong.com`, and shipping continuously. The Next.js build has not started |
+| 2 | Public site built: front door, /projects, /journey, /blog | **Live** on `jonathangong.com` and shipping continuously. Since decision 58 these hand-written pages are the architecture rather than a preview of one, and no rebuild is pending |
 | 3 | Admin built: auth, editor, image pipeline, commit layer | **Blog admin built 2026-09-01** on the static stack, with a password gate (decisions 58 and 59): write, draft, publish, edit, unpublish, delete, all from `/admin`. Journey entries and the image pipeline are still to do |
 | 4 | Real content in, domain connected | Domain connected 2026-08-20. Real front-door and Journey content is in; the blog ships empty by choice (decision 34) |
 
@@ -433,16 +460,17 @@ not a guess at what might be.
 Three owner-scoped edits already made to the preview are waiting on that reaction, and none is an oversight to correct: the Bizybear entry was removed from the Journey and, later, from the Work tab too (decision 43); the CMU Sophomore era was removed entirely, which drops 996 Ventures from the Journey while keeping it on the Work tab (decision 31, the same pattern as Bizybear); and the Summer 2026 era was merged from three entries into one, which necessarily costs that era the work/personal type distinction — an entry cannot be both.
 
 ### 11.2 Content required from owner
-Supplied 2026-08-19 and now living in the root static preview: work experience, the
-curated projects, the three social accounts (GitHub, LinkedIn, email), and
-`headshot.jpg`. It is real content, not placeholder copy, and it is what the Next.js
-build ports into MDX. The company logos in `logos/` (decision 41) and the three project
-screenshots in `projects/` (decision 45) are owner-supplied on the same terms: each one
-comes from a source the owner confirmed, and an entry whose source has not been confirmed
-carries no mark and no screenshot rather than a substitute. Where a screenshot shows what
-could be read as personal data, the owner confirms its provenance before it ships, because
-a public repository cannot unpublish a file from its own history: the patient names in
-`projects/patientscope-ai.png` are confirmed synthetic (decision 55).
+Supplied 2026-08-19 and now living in the hand-written pages at the repository root: work
+experience, the curated projects, the three social accounts (GitHub, LinkedIn, email), and
+`headshot.jpg`. It is real content, not placeholder copy, and under decision 58 it stays
+where it is — there is no framework build waiting to port it into MDX. The company logos in
+`logos/` (decision 41) and the three project screenshots in `projects/` (decision 45) are
+owner-supplied on the same terms: each one comes from a source the owner confirmed, and an
+entry whose source has not been confirmed carries no mark and no screenshot rather than a
+substitute. Where a screenshot shows what could be read as personal data, the owner confirms
+its provenance before it ships, because a public repository cannot unpublish a file from its
+own history: the patient names in `projects/patientscope-ai.png` are confirmed synthetic
+(decision 55).
 
 **Closed 2026-08-21 by decision 39.** The awards open item is retired with the section
 that held it: the one confirmed award is a sentence inside the ManuAI project entry, and

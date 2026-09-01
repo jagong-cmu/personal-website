@@ -163,22 +163,22 @@ too. Every card rule is scoped to `[data-panel="projects"]` the way the Work gri
 is scoped to `[data-panel="work"]`, and for the same reason: verify both panels after touching
 either.
 
-Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
+Three further prohibitions bind this site as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no external
 CSS/JS — a `<link>` is permitted only for a same-origin canonical or icon, decision 37),
 no phone number anywhere, and **no committed image may carry embedded
 metadata** — GPS and EXIF are stripped before an image lands, non-optionally, because this
 repository is public and an unstripped commit publishes the owner's locations permanently into
 git history (`PRD.md` §7.3, §8, decision 33).
-CI's `no-image-metadata` rule fails the build on anything that still carries it, and for the
-static preview the strip is a manual step, done with exactly this command:
+CI's `no-image-metadata` rule fails the build on anything that still carries it, and the strip
+is a manual step, done with exactly this command:
 `magick <in> -auto-orient -strip -resize '1600x1600>' -quality 82 <out>`.
 `-auto-orient` must come before `-strip`, because stripping removes the EXIF orientation tag
 and a plain `-strip` therefore leaves a phone photo rotated on the page.
 That invocation produced the seven `journey/` photographs, so it is recorded history rather
 than a suggestion: do not substitute another tool, add flags, or reorder it.
-It is the preview-era procedure only, and `PRD.md` §7.3 owns the eventual build-time `sharp`
-pipeline that subsumes it once the Next.js application lands.
+It is the procedure, not a stopgap: `PRD.md` §7.3's `sharp` pipeline presumed a build step
+that decision 58 removed, so nothing is coming to subsume it.
 The root icons are the one image pair it does not describe — `favicon.ico` (16/32/48) and
 `apple-touch-icon.png` (180x180) are cropped from `headshot.jpg` tighter than the on-page
 circle, because a head-and-shoulders photo is unreadable at 16px. They were produced with

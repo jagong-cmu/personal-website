@@ -49,7 +49,7 @@ function displayDate(date) {
 }
 
 // --- frontmatter -------------------------------------------------------------------------
-// A tiny fixed-key format, not YAML. Four known scalar keys, one per line, values stored
+// A tiny fixed-key format, not YAML. Three known scalar keys, one per line, values stored
 // as JSON strings so a colon, a quote, or a newline in a title needs no escaping rules of
 // its own.
 
