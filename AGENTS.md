@@ -55,6 +55,11 @@ half-applied publish leaves a page listed with nothing behind it. The Contents A
 this — it commits per file. A tree entry with a null sha deletes a path, and GitHub rejects
 one for a path that is not in the base tree, so a change set is built from what
 `posts.locate()` reports is actually there — never from an assumption that a draft exists.
+A stub backed by git plumbing is more permissive here than the real endpoint: it takes a
+create-tree entry with `sha: null` for a path absent from `base_tree`, where GitHub answers
+422. Passing against a stub is therefore not evidence that a tree operation works — exercise
+those against a preview deployment. `.github/scripts/test-api.js` refuses the absent delete
+the way GitHub does, so keep that behaviour if the stub is extended.
 
 **A slug is claimed, not overwritten.** `content.js`'s `claimSlug()` refuses with a 409 when
 the caller is creating a post and the slug already holds one, in `drafts/` or `blog/`. The
@@ -178,7 +183,8 @@ and a plain `-strip` therefore leaves a phone photo rotated on the page.
 That invocation produced the seven `journey/` photographs, so it is recorded history rather
 than a suggestion: do not substitute another tool, add flags, or reorder it.
 It is the procedure, not a stopgap: `PRD.md` §7.3's `sharp` pipeline presumed a build step
-that decision 58 removed, so nothing is coming to subsume it.
+that decision 58 removed, and its variant steps are now suspended by owner decision rather
+than pending (decision 66), so nothing is coming to subsume it.
 The root icons are the one image pair it does not describe — `favicon.ico` (16/32/48) and
 `apple-touch-icon.png` (180x180) are cropped from `headshot.jpg` tighter than the on-page
 circle, because a head-and-shoulders photo is unreadable at 16px. They were produced with
