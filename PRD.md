@@ -2,10 +2,12 @@
 
 - **Project:** `jagong-cmu/personal-website` (public)
 - **Owner:** Jonathan Gong
-- **Status:** Visual direction approved (§9, decisions 27–30). The approved static preview
-  is landed at the repository root and is **live in production on `jonathangong.com`**; the
-  Next.js build in §7 has not started. `README.md` covers the preview.
-- **Date:** 2026-08-18, last revised 2026-08-25
+- **Status:** Visual direction approved (§9, decisions 27–30). The hand-written static site
+  is **live in production on `jonathangong.com`**, and as of 2026-09-01 it is the
+  architecture rather than a preview of one (decision 58): §7.1 is rewritten around it and
+  the Next.js rebuild is dropped. The blog admin is built at `/admin`, behind a password
+  (decision 59). `README.md` covers the layout.
+- **Date:** 2026-08-18, last revised 2026-09-01
 - **Source:** Derived from a four-round requirements interview. Every decision below traces to the log in §13.
 
 ---
@@ -173,22 +175,61 @@ Grouped into **eras** — chapters such as childhood, high school, each CMU year
 
 ## 6. Admin
 
-Scope is content only: **blog posts and Journey entries.**
+Scope is content only: **blog posts and Journey entries.** Blog posts are built and live at
+`/admin`; Journey entries are not yet.
 
-- Sign in with GitHub, restricted to the `jagong-cmu` account. No password exists anywhere in this system to be leaked, guessed, or reused.
-- Create, edit, delete, and save drafts for both content types.
-- Image upload with an automatic pipeline (§7.3).
-- Publishing writes MDX and images back to the repository as a **single batched commit** via the GitHub API, then triggers a rebuild. A post is live roughly forty seconds after publish.
+- **Sign in with a password**, held in the `ADMIN_PASSWORD` environment variable. Owner's
+  decision 2026-09-01, decision 59 — it replaces the GitHub OAuth this section used to
+  specify, and the sentence it replaces was *"No password exists anywhere in this system to
+  be leaked, guessed, or reused."* **That sentence is no longer true, and the difference is
+  not cosmetic.** A password can be guessed, phished, reused from another site, or read out
+  of a note; a GitHub identity restricted to one account cannot be any of those. The thing
+  behind it publishes to a live site under the owner's real name. The owner was told this
+  plainly and chose the password anyway, to avoid an OAuth app and a second login. What
+  stands in for the lost property is the strength of the password itself and nothing else —
+  see decision 59 for what was built around it and what those defences do not do.
+- Create, edit, delete, and save drafts.
+- Publishing writes the post's page, its Markdown source, `blog.html`, and `sitemap.xml`
+  back to the repository as a **single batched commit** via the GitHub API, then triggers a
+  redeploy. A post is live roughly forty seconds after publish. The single commit is not a
+  tidiness preference: a half-applied publish would leave a page listed with nothing behind
+  it, or reachable and unlisted, for as long as the gap between commits lasted.
+- **All content reads and writes go through the GitHub API, never the deployed
+  filesystem.** Two independent reasons, either sufficient: `.vercelignore` withholds
+  `*.md` from the deployment upload, so a post's source is not in the deployment at all;
+  and a file committed a moment ago is not in the *currently running* deployment either.
+- Image upload with an automatic pipeline (§7.3) is **not built.** Until it is, an image in
+  a post would have to be committed by hand, and §7.3's stripping requirement applies to it
+  exactly as it applies to a Journey photograph.
 
 The consequence worth stating plainly: because content is committed to git, the site inherits free version history, free backups, free rollback, and content that stays readable and portable long after any framework decision made here has expired.
 
 ## 7. Technical architecture
 
 ### 7.1 Stack
-Next.js (App Router) + MDX + Tailwind, deployed on Vercel. Chosen over Astro because the admin is a genuine application with authentication, uploads, and an editor, and splitting it into a second deployment would double maintenance for an imperceptible gain. Next on Vercel is also the owner's existing, familiar path.
+**Hand-written static HTML, plus Node serverless functions in `api/`, deployed on Vercel
+zero-config.** Owner's decision 2026-09-01, decision 58. There is no framework, no build
+step, no bundler, and no `package.json`; `api/*.js` are CommonJS files using only Node's
+standard library and `fetch`.
 
-**Libraries, each with a reason:** Tailwind for the system; sharp for the build-time image
-pipeline; MDX for content. That is the whole list for the public site.
+This replaces the Next.js (App Router) + MDX + Tailwind stack this section used to specify.
+That stack was chosen because "the admin is a genuine application with authentication,
+uploads, and an editor", and the reasoning was sound — it was simply overruled. The owner
+read the plan and said: *"can we not build the admin panel without changing the stack? i
+like to keep the simplistic html pages."* The admin was then built the plain way and the
+premise turned out not to hold: authentication is one signed cookie, the editor is one
+`<textarea>`, and the whole thing is about a thousand lines with no dependencies at all.
+
+**What that costs, stated plainly.** Every page carries its own copy of the whole
+stylesheet, so a style change is an N-way edit — CI's `stylesheets-identical` rule is what
+makes that safe rather than merely documented. There is no component model and no type
+checking. A published post page is generated rather than hand-written, so it takes its
+stylesheet and masthead from `blog.html` at publish time instead of carrying a fourth copy
+that could drift.
+
+**Zero dependencies, and the reason.** Adding a `package.json` risks Vercel re-detecting the
+project as a framework build, which would put the public pages through a pipeline they do
+not need. Plain `fetch` reaches the GitHub REST API with no library.
 
 **No animation library.** §9 forbids motion, so nothing like Motion/Framer is included.
 
@@ -196,9 +237,13 @@ pipeline; MDX for content. That is the whole list for the public site.
 supersedes the earlier "deliberate typeface pairing" line, which belonged to the voided
 editorial direction.
 
-**shadcn/ui is permitted in the ADMIN ONLY** — `/admin` is private and authenticated, and
-§9 governs the public site's appearance, not a tool only the owner ever sees. It must not
-leak into any public route.
+**The ADMIN is exempt from §9** — `/admin` is private and authenticated, and §9 governs the
+public site's appearance, not a tool only the owner ever sees. The exemption is written into
+`.github/scripts/check-design-rules.py` by name (`EXEMPT_DIRS`) so that the admin is
+*excluded on purpose* rather than merely uncovered, and its own tests pin that. It must not
+leak into any public route: generated post pages under `blog/` are public and are checked
+like every other page, `stylesheets-identical` included. ~~shadcn/ui is permitted in the
+admin~~ — moot under decision 58, which removed the build step a component library needs.
 
 Nothing is included for its own sake.
 
@@ -217,7 +262,10 @@ Runs at upload/build time, never per-request:
 **Vercel's runtime image optimizer is never invoked.** It is metered on the Hobby plan, the account already carries eight projects, and a photo-heavy Journey is precisely the workload that would exhaust it. Pre-generating variants makes the quota structurally irrelevant.
 
 ### 7.4 Rendering
-Static generation for all public routes. The admin is dynamic and authenticated.
+Static files for all public routes — hand-written for the front door, Journey, and blog
+index, generated at publish time for a post page. The admin is a static page too; what is
+dynamic behind it are the functions in `api/`, which are authenticated on every request
+(§6, decision 59).
 
 ### 7.5 Domain
 `jonathangong.com` is registered and connected. Apex and `www` both resolve, and the static
@@ -256,7 +304,13 @@ inbound links. Blocking the crawler would make the exclusion weaker, not stronge
 - **The Journey is excluded from search engines**, so it will not surface in a search for the owner's name. It carries `noindex` and is left out of `sitemap.xml`; it is deliberately **not** `Disallow`ed in `robots.txt`, because a page that is never crawled never has its `noindex` read (§7.6, decision 38).
 - **Accepted risk, and now a live condition rather than a future one.** The Journey is publicly reachable today at `jonathangong.com/journey.html`, carrying real photographs of the owner. `noindex` does not restrict anyone holding the URL, and scrapers routinely ignore it. There is **no per-entry private switch** in v1 — every uploaded photo is effectively public to anyone who has ever been sent the link. Adding per-entry visibility later is a retrofit; the option was offered and declined, and that decision stands.
 - **GPS stripping is automatic and cannot be disabled.**
-- The admin route is `noindex, nofollow` and gated on a single GitHub identity.
+- The admin route is `noindex, nofollow` and gated on a password (§6, decision 59). It is
+  kept out of search the same way `journey.html` is and for the same reason: by a `noindex`
+  tag on a page that stays crawlable, never by a `robots.txt` disallow. A disallowed page is
+  never fetched, so its tag is never read, and `robots.txt` and `sitemap.xml` are both files
+  every crawler and scraper reads — naming `/admin` in either would publish the path while
+  suppressing the fetch that reads the tag. It is therefore named in neither, and nothing on
+  the public site links to it; `check-design-rules.py` asserts all three.
 
 ## 9. Visual direction
 
@@ -355,12 +409,12 @@ instruction 2026-08-20, exercising the overrule the earlier plan explicitly held
 |---|---|---|
 | 1 | Three visual directions — front door + one Journey screen, side by side | **Closed 2026-08-19.** Owner approved plain/white/empty; §9 is the result |
 | 2 | Public site built: front door, /projects, /journey, /blog | **Deployed as the static preview**, on `jonathangong.com`, and shipping continuously. The Next.js build has not started |
-| 3 | Admin built: GitHub auth, editor, image pipeline, commit layer | **Not started.** Now its own drop, with no gate on the public site |
+| 3 | Admin built: auth, editor, image pipeline, commit layer | **Blog admin built 2026-09-01** on the static stack, with a password gate (decisions 58 and 59): write, draft, publish, edit, unpublish, delete, all from `/admin`. Journey entries and the image pipeline are still to do |
 | 4 | Real content in, domain connected | Domain connected 2026-08-20. Real front-door and Journey content is in; the blog ships empty by choice (decision 34) |
 
-Stage 2's row is the one to read carefully: what is live is the hand-written static preview,
-not the architecture in §7. Public-site work continues to ship straight to production; the
-Next.js replacement lands the same way when it is ready.
+Stage 2's row read differently until 2026-09-01: what was live was called a preview, and §7
+described a Next.js replacement for it. Decision 58 closed that — the hand-written pages are
+the architecture now, §7.1 is rewritten around them, and there is no replacement pending.
 
 ## 11. Open items
 
@@ -466,3 +520,8 @@ See §7.5.
 | 55 | **The patient names in `projects/patientscope-ai.png` are owner-confirmed synthetic placeholders** | Owner's confirmation 2026-08-25, logged the way decision 30 requires an owner confirmation to be logged, and obtained **before** the file shipped rather than after — a public repository cannot unpublish an image from its own git history, which is why the question was asked up front. Firstmate flagged that the screenshot puts patient-level rows on a live public site: full names ("Christopher White", "Charles Hernandez", "Matthew Garcia") beside lab values and timestamps. The owner confirms they are **app-generated surrogates, not real people**, which is consistent with the underlying data — MIMIC-IV carries no patient names at all, and the far-future dates in the frame (11/17/2201, 5/23/2187, 10/27/2181) are MIMIC-IV's date-shifting signature. The file therefore ships exactly as committed: it is **not** to be re-cropped, blurred, re-exported, or replaced, and a future session must not read those names as a privacy defect to correct. This row records a positive confirmation, not an unreviewed oversight, and it **loosens nothing**: §7.3, §8 and decision 33's rule against publishing identifying data into this repository stand unchanged, and the next screenshot carrying anything that looks like personal data needs its own confirmation on the same terms |
 | 56 | **The About paragraph is replaced by four short paragraphs of the owner's own copy, and no longer narrates the hackathon result** | Owner's instruction 2026-08-31, supplying the replacement text himself. The single About paragraph — which opened "Hi, I'm Jonathan" and closed "my inbox is open" — is gone, along with the `.note` education line beneath it ("Carnegie Mellon University — B.S. Information Systems, double major in Artificial Intelligence. August 2025 – May 2029."); the `.note` CSS rule stays, because `blog.html` still uses it and the three inline stylesheets are required to stay byte-identical. The new copy is the owner's words about himself and is not to be rewritten, expanded, or condensed by a future session. **This narrows two standing rows.** Decision 39 says "The About paragraph keeps its own narrative phrasing of the same result, deliberately" and decision 50 says the ManuAI award was kept through the one-sentence cut partly because "the About paragraph already refers to" it — both are now false as to About, and a reader following either row will look for a sentence that is gone. **The award's home in the front-door panels is the ManuAI project entry alone** — `journey.html` narrates the same win separately, in its Summer 2026 era — on the owner's instruction, and that entry keeps it: the credential did not leave the site, and this was accepted rather than overlooked. Neither earlier row is rewritten in place; they are superseded here, the way this log supersedes elsewhere. **One deliberate departure from the supplied text:** the owner wrote "inquires" and it ships as "inquiries" — a spelling correction to an obvious typo on a professional portfolio page, made knowingly and reported to the owner, recorded so it is not later read as drift and reverted. Everything else is verbatim, including the fragment "A little bit about me.", the unhyphenated "go to market", and the closing exclamation mark. "reach out" in the last paragraph is a `mailto:jagong@andrew.cmu.edu` link — the same address the masthead email icon already uses, so no new destination and no `ALLOWED_LINK_PREFIXES` change — carrying no class, inline style, `target`, or `rel`, so it inherits the page's existing link styling. **No `<head>` metadata changed:** the `description`, Open Graph, Twitter, and JSON-LD strings on `index.html` and `blog.html` still say "Information Systems and Artificial Intelligence student at Carnegie Mellon" and the JSON-LD keeps its `alumniOf` entry — the AI double major is still true, merely no longer in the prose, and the owner asked for a copy rewrite rather than a claims audit. The masthead one-liner is untouched on all three pages. No CSS, markup pattern, or JavaScript changed; decision 36's 880px `--measure` still governs the panel, and no horizontal overflow or layout change was found at 1280, 768, 560 or 375px |
 | 57 | **About's four paragraphs are separated by 24px, a scoped exception to the panel's 56px rhythm** | Firstmate's finding on decision 56, owner's decision 2026-08-31 taken after reviewing 56px, 24px and 16px rendered. `.panel > * + *` was sized as the **between-entry** rhythm — it separates whole Work entries, and before decision 56 it separated the single About paragraph from the grey `.note` line — and four short prose paragraphs inherited it — three of one line each, and a third that wraps to three lines at the 880px measure — so the bio read as four disconnected blocks rather than one continuous introduction on the site's default landing view: **the paragraphs spanned 331px, being 163px of text over six lines and 168px of empty gap**. 16px was rejected in the other direction, because the gap between paragraphs would fall below the paragraph's own roughly 27px line spacing and a paragraph break would read as weaker than a line break inside one. The whole change is one rule, `[data-panel="about"] > p + p { margin-top: 24px; }`, **scoped to About so no other panel moves**: `.panel > * + * { margin-top: 56px; }` is unchanged and still governs Work, Projects and every other panel child (verified: Work, Projects, `journey.html` and `blog.html` render identically). 24px is already on the page — it is the Projects card gap (decision 51) and the tabs row's column gap — so no new token, type size, or colour was introduced, and §9 binds in full otherwise: no shadow, gradient, transition, animation, or radius. The identical line goes into all three inline stylesheets at the identical position, because `stylesheets-identical` requires them byte-identical even though only `index.html` has an About panel. The copy, the `mailto:` anchor, the markup, the `<head>` metadata and the JavaScript are untouched. **This narrows decision 56's closing "No CSS, markup pattern, or JavaScript changed"** — that was true of the copy rewrite itself; this row is the spacing that followed from it, and neither row is rewritten in place. Recorded here so the two are not later read as unrelated: the same finding round also corrected `AGENTS.md`, whose Projects paragraph still said ManuAI's 1st-place hackathon line "was kept through that cut on purpose and the About paragraph depends on it" — a dependency decision 56 had made false, and the load-bearing rationale a future session would use to justify keeping the credential. That clause now states that the About paragraph no longer mentions it and that the ManuAI entry is the award's only home in the front-door panels, with `journey.html` narrating the same win separately |
+| 58 | **The stack does not change: the hand-written static pages stay, and the admin is built on them with Node functions in `api/`.** Supersedes §7.1's Next.js + MDX + Tailwind commitment and `README.md`'s "will be deleted" | Owner's instruction 2026-09-01, overruling firstmate's plan to build the admin in Next: *"can we not build the admin panel without changing the stack? i like to keep the simplistic html pages."* §7.1 argued that "the admin is a genuine application with authentication, uploads, and an editor" and so justified a framework; that reasoning is overruled, not reinterpreted, and the build proved it thin — the auth is one signed cookie, the editor is one `<textarea>`, and the whole admin has no dependencies and no `package.json`. **What is given up:** no component model, no type checking, and a stylesheet duplicated into every page, so a CSS change is an N-way edit that only CI's `stylesheets-identical` rule makes safe. A generated post page therefore lifts its stylesheet and masthead out of `blog.html` at publish time rather than carrying a fourth copy that could drift. A `package.json` is avoided deliberately: it risks Vercel re-detecting the project as a framework build. §7.1 and §7.4 are rewritten, `README.md`'s "static preview (temporary)" section is retired, and stage 3 of §10 follows |
+| 59 | **The admin is gated by a password (`ADMIN_PASSWORD`), not by GitHub OAuth.** Supersedes §6's "Sign in with GitHub, restricted to the `jagong-cmu` account" | Owner's decision 2026-09-01, taken after being told plainly what it costs. **What is given up is a sentence §6 used to make: "No password exists anywhere in this system to be leaked, guessed, or reused." That is no longer true.** A password can be guessed, phished, reused from another site, or written down; a GitHub identity restricted to one account cannot be any of those, and what sits behind this gate commits to a live site under the owner's real name. The owner accepted that to avoid registering an OAuth app and signing in through a second service. What was built around it, and what it does not do: the comparison is timing-safe (`crypto.timingSafeEqual` over SHA-256 digests, so neither the password's value nor its length leaks by timing); a failed attempt costs a fixed delay; repeated failures from one address are throttled, but **that throttle is best-effort only** — serverless instances are stateless and independent, so the counter lives in one warm instance's memory and a distributed or patient attacker simply lands elsewhere. It raises the cost of a naive script and nothing more. **The strength of `ADMIN_PASSWORD` is the actual defence.** The session cookie carries no secret, only an HMAC-signed expiry (`SESSION_SECRET`), and is `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/`, 12 hours. Every content endpoint verifies it first and returns 401 having done nothing. `ADMIN_PASSWORD`, `SESSION_SECRET`, and `GITHUB_TOKEN` are environment-only and appear in no committed file, no client script, and no response body |
+| 60 | **A post's Markdown source is never publicly reachable, and `.vercelignore`'s `*.md` is the whole mechanism** | Firstmate's design 2026-09-01, following from decision 58. Source lives at `drafts/<slug>.md` while unpublished and at `blog/<slug>.md` once out, so a post's state is its location and both states are withheld from the deployment upload by one pattern. The published artefact is the generated `blog/<slug>.html` beside it. That protection keys on the extension and nothing else, so a single non-`.md` file landing in `drafts/` would be served to anyone who guessed the URL — the worst outcome this system can produce — and `check-design-rules.py`'s `drafts-not-servable` rule asserts the invariant rather than trusting it. Do not narrow `*.md`: its comment used to say to, and that advice was written before any content lived in `.md` |
+| 61 | **Generated post pages are governed by §9 and checked in CI; the destination allowlist is the one half that does not bind them** | Firstmate's finding 2026-09-01. `check-design-rules.py` no longer works from a hardcoded list of three pages — it discovers public pages by walking the repository, so a post published next year is checked with nobody remembering to add it, and `admin/` is excluded by name rather than by omission. The `zero-external-requests` rule splits: its fetch half (stylesheets, scripts, images, `@import`, `url()`) binds a post page exactly as it binds the front door, but the *navigation* allowlist does not. That list exists because of decision 30 — an agent must not invent a URL for a company it cannot verify — and a post's links are typed by the owner in the editor, so they are confirmed by construction and the list would be a false gate. An `href` using a scheme no reader can follow (`javascript:`, `data:`, `vbscript:`) is now rejected on every page, and the Markdown converter refuses to emit one in the first place |
+| 62 | **Post prose gets no monospace font family and no rule beside a blockquote; code and quotations are set off by indent and the browser's own default face** | Firstmate's finding, recorded because both are the obvious thing for a future session to "fix". §9 says "One family", and `check-design-rules.py` fails a second `font-family` declaration, so a monospace stack for `<code>` would need an owner's §9 exception and does not have one; what the site does instead is declare a size from its own three and leave the face to the browser's default for `<code>` and `<pre>`, which is the plain behaviour of plain HTML rather than a second stack chosen here. A blockquote gets depth — indented further than a list so it does not read as one more bullet — because §9 forbids borders-as-styling and a second text colour. Both are live trade-offs the owner may want to revisit; neither is an oversight |

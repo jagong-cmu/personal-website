@@ -12,6 +12,15 @@ one selector until 2026-08-25, when the rounded Projects card was granted a seco
 are pinned here too: the two exempt selectors pass, and everything else — including selectors
 that merely share a prefix with them, or sit in the same comma-separated list — still fails.
 
+The 2026-09-01 admin work added a third hazard of the same kind, and the largest one. The
+checker no longer works from a hardcoded list of three pages: it DISCOVERS public pages, so
+what it covers is now a consequence of a walk and two directory sets rather than something
+anybody reads off a line. Two opposite mistakes are then invisible — a generated post page
+quietly falling outside the walk, and `admin/` quietly falling inside it — and a third,
+`curated_links`, hands post pages an exemption from the destination allowlist that must not
+leak back onto the hand-written pages or widen past that one half of the rule. All three are
+pinned below, along with the rules that keep a draft from ever being served.
+
 Standard library only, same as the checker. Run it from the repository root:
 
     python3 .github/scripts/test-design-rules.py
@@ -19,7 +28,9 @@ Standard library only, same as the checker. Run it from the repository root:
 
 import importlib.util
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -196,6 +207,253 @@ class BorderRadiusTest(unittest.TestCase):
 
     def test_shadow_on_the_card_is_still_blocked(self):
         self.assertBlocked('[data-panel="projects"] .entry { box-shadow: 0 2px 8px #0002; }')
+
+
+class CuratedLinksTest(unittest.TestCase):
+    """The destination allowlist (PRD decision 30) binds the hand-written pages, where an
+    absolute URL is only ever present because the owner confirmed it by name. A blog post's
+    links are typed by the owner in the editor, so `blog/` opts out of that half — and ONLY
+    that half. The fetch half is what "zero external requests" actually protects and it must
+    still bind a post page exactly as it binds the front door."""
+
+    def failures_for(self, markup, curated):
+        rules.failures.clear()
+        rules.check_external_requests("blog/post.html", markup, curated_links=curated)
+        return list(rules.failures)
+
+    def test_unapproved_link_blocked_on_a_hand_written_page(self):
+        self.assertTrue(self.failures_for('<a href="https://example.com/">x</a>\n', True))
+
+    def test_unapproved_link_permitted_in_a_post(self):
+        self.assertEqual([], self.failures_for('<a href="https://example.com/">x</a>\n', False))
+
+    def test_a_post_may_not_load_an_external_stylesheet(self):
+        self.assertTrue(self.failures_for(
+            '<link rel="stylesheet" href="https://cdn.example.com/a.css">\n', False))
+
+    def test_a_post_may_not_load_an_off_site_script(self):
+        self.assertTrue(self.failures_for('<script src="https://cdn.example.com/a.js"></script>\n', False))
+
+    def test_a_post_may_not_fetch_a_remote_image(self):
+        self.assertTrue(self.failures_for('<img src="https://example.com/a.png">\n', False))
+
+    def test_a_post_may_not_import_a_stylesheet(self):
+        self.assertTrue(self.failures_for('<style>@import url(x.css);</style>\n', False))
+
+    def test_javascript_href_blocked_in_both_modes(self):
+        for curated in (True, False):
+            self.assertTrue(self.failures_for('<a href="javascript:alert(1)">x</a>\n', curated), curated)
+
+    def test_data_href_blocked_in_both_modes(self):
+        for curated in (True, False):
+            self.assertTrue(self.failures_for('<a href="data:text/html,x">x</a>\n', curated), curated)
+
+
+class SiteFixture(unittest.TestCase):
+    """A throwaway repository root, for the rules that read the filesystem."""
+
+    PAGE = ('<html><head><style>body { background: #FFFFFF; '
+            'font-family: system-ui, sans-serif; }</style></head><body>{body}</body></html>\n')
+
+    def setUp(self):
+        rules.failures.clear()
+        self.root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.root, True)
+
+    def write(self, rel, text):
+        full = os.path.join(self.root, rel)
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        return full
+
+    def page(self, body=""):
+        return self.PAGE.replace("{body}", body)
+
+
+class DiscoveryTest(SiteFixture):
+    """What the checker covers is now the result of a walk, not a list. Both directions of
+    that are pinned: a post page published next year must be picked up with nobody
+    remembering to add it, and `admin/` must stay out — excluded by name in EXEMPT_DIRS
+    because PRD section 7.1 grants it, not merely unnoticed."""
+
+    def test_root_pages_and_posts_are_discovered(self):
+        for name in rules.REQUIRED_PAGES:
+            self.write(name, self.page())
+        self.write("blog/a-post.html", self.page())
+        self.write("blog/another-post.html", self.page())
+        found = rules.discover_pages(self.root)
+        self.assertIn("blog/a-post.html", found)
+        self.assertIn("blog/another-post.html", found)
+        for name in rules.REQUIRED_PAGES:
+            self.assertIn(name, found)
+
+    def test_admin_is_excluded(self):
+        self.write("index.html", self.page())
+        self.write("admin/index.html", self.page())
+        self.assertNotIn("admin/index.html", rules.discover_pages(self.root))
+
+    def test_admin_is_excluded_by_name_not_by_accident(self):
+        # If the exemption is ever removed, this fails and names the reason.
+        self.assertIn("admin", rules.EXEMPT_DIRS)
+
+    def test_function_sources_and_drafts_are_excluded(self):
+        self.write("api/index.html", self.page())
+        self.write("drafts/index.html", self.page())
+        self.assertEqual([], rules.discover_pages(self.root))
+
+    def test_the_checkers_own_directory_is_skipped(self):
+        self.write(".github/scripts/fixture.html", self.page())
+        self.assertEqual([], rules.discover_pages(self.root))
+
+
+class PostPagePathsTest(SiteFixture):
+    """A post sits one directory down and reaches shared assets with `../`. A rule that
+    resolved every relative URL against the repository root would call the correct link
+    broken and the broken one fine."""
+
+    def test_parent_relative_asset_resolves(self):
+        self.write("headshot.jpg", "x")
+        self.write("blog/a-post.html", "")
+        rules.check_internal_links("blog/a-post.html", '<img src="../headshot.jpg">\n', self.root)
+        self.assertEqual([], rules.failures)
+
+    def test_root_relative_asset_from_a_post_is_broken(self):
+        self.write("headshot.jpg", "x")
+        rules.check_internal_links("blog/a-post.html", '<img src="headshot.jpg">\n', self.root)
+        self.assertTrue(rules.failures)
+
+    def test_a_missing_target_still_fails(self):
+        rules.check_internal_links("blog/a-post.html", '<a href="../nowhere.html">x</a>\n', self.root)
+        self.assertTrue(rules.failures)
+
+
+class StylesheetsIdenticalTest(unittest.TestCase):
+    """The rule that keeps a generated page looking hand-written. `api/_lib/render.js`
+    lifts the sheet out of `blog.html` rather than carrying its own copy, and this is what
+    proves the lift still happens."""
+
+    def test_a_drifting_post_page_fails(self):
+        rules.failures.clear()
+        rules.check_stylesheets_identical({
+            "blog.html": "<style>a { color: red; }</style>",
+            "blog/a-post.html": "<style>a { color: blue; }</style>",
+        })
+        self.assertTrue(rules.failures)
+        self.assertIn("stylesheets-identical", rules.failures[0])
+
+    def test_a_matching_post_page_passes(self):
+        rules.failures.clear()
+        rules.check_stylesheets_identical({
+            "blog.html": "<style>a { color: red; }</style>",
+            "blog/a-post.html": "<style>a { color: red; }</style>",
+        })
+        self.assertEqual([], rules.failures)
+
+
+class AdminExclusionTest(SiteFixture):
+    """`admin/` is exempt from the design rules, so what remains of its obligations is
+    asserted instead: it is kept out of search by a `noindex` tag on a page that stays
+    crawlable, exactly as `journey.html` is and for the reason `robots.txt` gives."""
+
+    def test_missing_noindex_fails(self):
+        self.write("admin/index.html", "<html><head></head><body>x</body></html>")
+        rules.check_admin(self.root, {})
+        self.assertTrue(rules.failures)
+
+    def test_noindex_nofollow_passes(self):
+        self.write("admin/index.html",
+                   '<html><head><meta name="robots" content="noindex, nofollow"></head></html>')
+        rules.check_admin(self.root, {})
+        self.assertEqual([], rules.failures)
+
+    def test_noindex_without_nofollow_fails(self):
+        self.write("admin/index.html",
+                   '<html><head><meta name="robots" content="noindex"></head></html>')
+        rules.check_admin(self.root, {})
+        self.assertTrue(rules.failures)
+
+    def test_a_sitemap_entry_for_the_admin_fails(self):
+        self.write("admin/index.html",
+                   '<html><head><meta name="robots" content="noindex, nofollow"></head></html>')
+        self.write("sitemap.xml",
+                   "<urlset><url><loc>https://jonathangong.com/admin</loc></url></urlset>")
+        rules.check_admin(self.root, {})
+        self.assertTrue(rules.failures)
+
+    def test_a_comment_mentioning_the_admin_does_not_fail(self):
+        # The rule is about what is LISTED. `sitemap.xml`'s own comments describe how the
+        # post block is maintained, and a substring search on the word would trip on them.
+        self.write("admin/index.html",
+                   '<html><head><meta name="robots" content="noindex, nofollow"></head></html>')
+        self.write("sitemap.xml", "<urlset><!-- maintained from the admin --></urlset>")
+        rules.check_admin(self.root, {})
+        self.assertEqual([], rules.failures)
+
+    def test_a_public_page_linking_to_the_admin_fails(self):
+        self.write("admin/index.html",
+                   '<html><head><meta name="robots" content="noindex, nofollow"></head></html>')
+        rules.check_admin(self.root, {"index.html": '<a href="/admin">admin</a>\n'})
+        self.assertTrue(rules.failures)
+
+    def test_no_admin_directory_is_not_a_failure(self):
+        rules.check_admin(self.root, {})
+        self.assertEqual([], rules.failures)
+
+
+class DraftsTest(SiteFixture):
+    """Drafts are kept off the deployment by `.vercelignore`'s `*.md`, which keys on the
+    extension and nothing else. A single non-Markdown file in `drafts/` would therefore be
+    served to anyone who guessed the URL — the worst outcome the admin can produce — so the
+    invariant that exclusion rests on is asserted rather than assumed."""
+
+    def test_markdown_drafts_pass(self):
+        self.write("drafts/a-post.md", "---\ntitle: \"x\"\n---\n")
+        rules.check_drafts(self.root)
+        self.assertEqual([], rules.failures)
+
+    def test_an_html_draft_fails(self):
+        self.write("drafts/a-post.html", "<html></html>")
+        rules.check_drafts(self.root)
+        self.assertTrue(rules.failures)
+        self.assertIn("drafts-not-servable", rules.failures[0])
+
+    def test_a_stray_image_in_drafts_fails(self):
+        self.write("drafts/screenshot.png", "x")
+        rules.check_drafts(self.root)
+        self.assertTrue(rules.failures)
+
+
+class PostsListedTest(SiteFixture):
+    """Publishing writes the post page, `blog.html`, and `sitemap.xml` in one commit so
+    the three can never disagree (PRD section 6). This is the assertion that says so."""
+
+    SITEMAP = ("<urlset><url><loc>https://jonathangong.com/blog/a-post.html</loc></url>"
+               "</urlset>")
+
+    def test_a_fully_published_post_passes(self):
+        self.write("blog/a-post.html", self.page())
+        self.write("sitemap.xml", self.SITEMAP)
+        rules.check_posts_listed(self.root, {"blog.html": '<a href="blog/a-post.html">x</a>'})
+        self.assertEqual([], rules.failures)
+
+    def test_a_post_missing_from_the_index_fails(self):
+        self.write("blog/a-post.html", self.page())
+        self.write("sitemap.xml", self.SITEMAP)
+        rules.check_posts_listed(self.root, {"blog.html": "<main></main>"})
+        self.assertTrue(rules.failures)
+
+    def test_a_post_missing_from_the_sitemap_fails(self):
+        self.write("blog/a-post.html", self.page())
+        self.write("sitemap.xml", "<urlset></urlset>")
+        rules.check_posts_listed(self.root, {"blog.html": '<a href="blog/a-post.html">x</a>'})
+        self.assertTrue(rules.failures)
+
+    def test_a_sitemap_entry_with_no_page_behind_it_fails(self):
+        os.makedirs(os.path.join(self.root, "blog"), exist_ok=True)
+        self.write("sitemap.xml", self.SITEMAP)
+        rules.check_posts_listed(self.root, {"blog.html": ""})
+        self.assertTrue(rules.failures)
 
 
 class SameOriginTest(unittest.TestCase):

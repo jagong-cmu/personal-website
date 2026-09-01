@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin</title>
+<!-- Excluded from search engines the same way `journey.html` is, and for the reason
+     `robots.txt` gives: a page that `robots.txt` disallows is never fetched, so its
+     `noindex` is never read and the bare URL can still be indexed from an inbound link.
+     Leaving /admin crawlable is what makes the exclusion actually hold. It is also absent
+     from `sitemap.xml` and linked from nowhere on the site, and every response from
+     `api/` carries `X-Robots-Tag: noindex, nofollow`. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<style>
+/* PRD section 9 governs the public site's appearance, not a tool only the owner sees
+   (section 7.1), and `.github/scripts/check-design-rules.py` excludes this directory by
+   name. What is kept anyway: the system font stack, the site's ink/grey/link colours, and
+   zero external requests. What is not: this page needs buttons, fields, and a monospace
+   editor, and it has them. */
+:root {
+  --ink: #111111;
+  --grey: #6b6b6b;
+  --link: #0645ad;
+  --rule: #dcdcdc;
+  --shell: #f6f6f6;
+  --danger: #a01919;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--shell);
+  color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+a { color: var(--link); }
+h1 { font-size: 17px; margin: 0; }
+h2 { font-size: 15px; margin: 0 0 12px; }
+p { margin: 0; }
+button, input, textarea, select { font: inherit; color: inherit; }
+input, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: #FFFFFF;
+}
+input:disabled { background: var(--shell); color: var(--grey); }
+textarea { resize: vertical; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; }
+button {
+  padding: 8px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: #FFFFFF;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--ink); }
+button:disabled { color: var(--grey); cursor: default; }
+button.primary { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
+button.primary:hover:not(:disabled) { background: #000000; }
+button.danger { color: var(--danger); }
+label { display: block; }
+label > span { display: block; color: var(--grey); margin-bottom: 4px; }
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--rule);
+}
+.bar .spacer { flex: 1; }
+.status { color: var(--grey); min-height: 1.5em; }
+.status[data-tone="error"] { color: var(--danger); }
+
+/* Gate */
+.gate { max-width: 340px; margin: 96px auto; padding: 24px; background: #FFFFFF; border: 1px solid var(--rule); border-radius: 6px; }
+.gate > * + * { margin-top: 16px; }
+
+/* Editor */
+.layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; padding: 24px; align-items: start; }
+@media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+.panel { background: #FFFFFF; border: 1px solid var(--rule); border-radius: 6px; padding: 16px; }
+.fields > * + * { margin-top: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.row.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .row.split { grid-template-columns: 1fr; } }
+
+.postlist { list-style: none; margin: 0 0 12px; padding: 0; }
+.postlist li + li { margin-top: 2px; }
+.postlist button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border-color: transparent;
+  padding: 8px 10px;
+}
+.postlist button[aria-current="true"] { border-color: var(--ink); }
+.postlist .t { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.postlist .s { display: block; color: var(--grey); font-size: 13px; }
+.empty { color: var(--grey); }
+
+.preview { margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 16px; }
+.preview :is(h2, h3) { font-size: 15px; margin: 16px 0 0; }
+.preview p, .preview ul, .preview ol, .preview pre, .preview blockquote { margin: 12px 0 0; }
+.preview blockquote { padding-left: 16px; border-left: 2px solid var(--rule); color: var(--grey); }
+.preview pre { overflow-x: auto; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<form class="gate" id="gate" hidden>
+  <h1>Admin</h1>
+  <label><span>Password</span><input type="password" id="password" autocomplete="current-password" required></label>
+  <button class="primary" type="submit">Sign in</button>
+  <p class="status" id="gate-status" role="status" aria-live="polite"></p>
+</form>
+
+<div id="editor" hidden>
+  <div class="bar">
+    <h1>Blog admin</h1>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <span class="spacer"></span>
+    <a href="../blog.html">View blog</a>
+    <button type="button" id="logout">Sign out</button>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <h2>Posts</h2>
+      <ul class="postlist" id="postlist"></ul>
+      <button type="button" id="new">New post</button>
+    </div>
+
+    <form class="panel fields" id="form">
+      <div class="row split">
+        <label><span>Title</span><input id="title" required maxlength="200"></label>
+        <label><span>Date</span><input id="date" type="date" required></label>
+      </div>
+      <label><span>Slug — the URL, fixed once the post is first saved</span>
+        <input id="slug" class="mono" required maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*"></label>
+      <label><span>Summary — one line; it becomes the post's description and its line on the blog index</span>
+        <input id="summary" required maxlength="400"></label>
+      <label><span>Body — Markdown: headings, <b>**bold**</b>, <i>*italic*</i>, links, lists, quotes, `code`</span>
+        <textarea id="markdown" class="mono" rows="22"></textarea></label>
+
+      <div class="row">
+        <button class="primary" type="submit" id="save">Save draft</button>
+        <button type="button" id="publish">Publish</button>
+        <button type="button" id="unpublish" hidden>Unpublish</button>
+        <button type="button" id="preview">Preview</button>
+        <span class="spacer"></span>
+        <button type="button" class="danger" id="delete" hidden>Delete</button>
+      </div>
+
+      <div class="preview" id="preview-out" hidden></div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // No secret ever reaches this file. It sends a password once and thereafter relies on an
+  // HttpOnly cookie it cannot read; the GitHub token lives only in the functions.
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { posts: [], slug: null, published: false, saved: false, clean: '' };
+
+  function snapshot() { return JSON.stringify(collect()); }
+  function dirty() { return snapshot() !== state.clean; }
+
+  // Every write goes to the repository, so nothing is auto-saved and an abandoned edit is
+  // simply lost. Both ways of leaving an edit ask first.
+  function mayDiscard() {
+    return !dirty() || window.confirm('This post has unsaved changes. Discard them?');
+  }
+
+  function say(text, tone) {
+    var el = $('status');
+    el.textContent = text || '';
+    if (tone) { el.setAttribute('data-tone', tone); } else { el.removeAttribute('data-tone'); }
+  }
+
+  async function api(path, options) {
+    var response = await fetch(path, Object.assign({
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+    }, options || {}));
+    var data = null;
+    try { data = await response.json(); } catch (_) { data = null; }
+    if (response.status === 401) { showGate('Your session ended. Sign in again.'); throw new Error('unauthorised'); }
+    if (!response.ok) throw new Error((data && data.error) || 'Something went wrong.');
+    return data;
+  }
+
+  function showGate(message) {
+    $('editor').hidden = true;
+    $('gate').hidden = false;
+    $('gate-status').textContent = message || '';
+    $('gate-status').setAttribute('data-tone', message ? 'error' : '');
+    $('password').value = '';
+    $('password').focus();
+  }
+
+  function showEditor() {
+    $('gate').hidden = true;
+    $('editor').hidden = false;
+  }
+
+  // --- the form ---------------------------------------------------------------------
+
+  function slugify(text) {
+    return text.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '').slice(0, 80).replace(/-+$/, '');
+  }
+
+  function today() {
+    var now = new Date();
+    return [now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0')].join('-');
+  }
+
+  function fill(post) {
+    state.slug = post.slug || null;
+    state.published = !!post.published;
+    state.saved = !!post.slug;
+    $('title').value = post.title || '';
+    $('date').value = post.date || today();
+    $('slug').value = post.slug || '';
+    $('summary').value = post.summary || '';
+    $('markdown').value = post.markdown || '';
+    $('slug').disabled = state.saved;
+    $('delete').hidden = !state.saved;
+    $('unpublish').hidden = !state.published;
+    $('publish').textContent = state.published ? 'Republish' : 'Publish';
+    $('save').textContent = state.published ? 'Save' : 'Save draft';
+    $('preview-out').hidden = true;
+    state.clean = snapshot();
+    renderList();
+  }
+
+  function collect() {
+    return {
+      slug: $('slug').value.trim(),
+      title: $('title').value.trim(),
+      date: $('date').value.trim(),
+      summary: $('summary').value.trim(),
+      markdown: $('markdown').value,
+    };
+  }
+
+  function renderList() {
+    var list = $('postlist');
+    list.textContent = '';
+    if (state.posts.length === 0) {
+      var empty = document.createElement('li');
+      empty.className = 'empty';
+      empty.textContent = 'No posts yet.';
+      list.appendChild(empty);
+      return;
+    }
+    state.posts.forEach(function (post) {
+      var item = document.createElement('li');
+      var button = document.createElement('button');
+      button.type = 'button';
+      if (post.slug === state.slug) button.setAttribute('aria-current', 'true');
+      var title = document.createElement('span');
+      title.className = 't';
+      title.textContent = post.title || post.slug;
+      var meta = document.createElement('span');
+      meta.className = 's';
+      meta.textContent = (post.published ? 'Published' : 'Draft') + ' · ' + post.date;
+      button.appendChild(title);
+      button.appendChild(meta);
+      button.addEventListener('click', function () { open(post.slug); });
+      item.appendChild(button);
+      list.appendChild(item);
+    });
+  }
+
+  async function refresh() {
+    var data = await api('/api/posts');
+    state.posts = data.posts;
+    renderList();
+  }
+
+  async function open(slug) {
+    if (slug === state.slug) return;
+    if (!mayDiscard()) return;
+    say('');
+    var data = await api('/api/posts?slug=' + encodeURIComponent(slug));
+    fill(data.post);
+  }
+
+  function invalid() {
+    if (!$('form').reportValidity()) return true;
+    return false;
+  }
+
+  async function run(label, work) {
+    var buttons = document.querySelectorAll('#form button');
+    buttons.forEach(function (b) { b.disabled = true; });
+    say(label + '…');
+    try {
+      await work();
+    } catch (error) {
+      say(error.message, 'error');
+    } finally {
+      buttons.forEach(function (b) { b.disabled = false; });
+    }
+  }
+
+  $('form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    run('Saving', async function () {
+      var result = await api('/api/posts', { method: 'POST', body: JSON.stringify(collect()) });
+      await refresh();
+      fill(result.post);
+      say(result.commit ? 'Saved.' : 'No change to save.');
+    });
+  });
+
+  $('publish').addEventListener('click', function () {
+    if (invalid()) return;
+    run('Publishing', async function () {
+      var result = await api('/api/publish', { method: 'POST', body: JSON.stringify(collect()) });
+      await refresh();
+      fill(result.post);
+      say('Published. It is live once Vercel finishes the deploy, usually under a minute.');
+    });
+  });
+
+  $('unpublish').addEventListener('click', function () {
+    if (!window.confirm('Take this post off the site? The text is kept as a draft.')) return;
+    run('Unpublishing', async function () {
+      var result = await api('/api/publish', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'unpublish', slug: state.slug }),
+      });
+      await refresh();
+      fill(result.post);
+      say('Back to a draft.');
+    });
+  });
+
+  $('delete').addEventListener('click', function () {
+    if (!window.confirm('Delete "' + ($('title').value || state.slug) + '" for good? Git keeps the history, but the post goes.')) return;
+    run('Deleting', async function () {
+      await api('/api/posts', { method: 'DELETE', body: JSON.stringify({ slug: state.slug }) });
+      await refresh();
+      fill({});
+      say('Deleted.');
+    });
+  });
+
+  // The preview calls the same server-side converter the published page is built with, so
+  // what it shows is what the post will say.
+  $('preview').addEventListener('click', function () {
+    run('Rendering', async function () {
+      var result = await api('/api/posts', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'preview', markdown: $('markdown').value }),
+      });
+      var out = $('preview-out');
+      out.innerHTML = result.html;
+      out.hidden = false;
+      say('');
+    });
+  });
+
+  $('new').addEventListener('click', function () {
+    if (!mayDiscard()) return;
+    say('');
+    fill({});
+  });
+
+  window.addEventListener('beforeunload', function (event) {
+    if ($('editor').hidden || !dirty()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  $('title').addEventListener('input', function () {
+    if (!state.saved) $('slug').value = slugify($('title').value);
+  });
+
+  $('logout').addEventListener('click', async function () {
+    await fetch('/api/login', { method: 'DELETE', credentials: 'same-origin' });
+    showGate('');
+  });
+
+  $('gate').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    var password = $('password').value;
+    $('gate-status').textContent = 'Checking…';
+    try {
+      var response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ password: password }),
+      });
+      if (!response.ok) { showGate('Incorrect password.'); return; }
+      await start();
+    } catch (_) {
+      showGate('Could not reach the server.');
+    }
+  });
+
+  async function start() {
+    showEditor();
+    fill({});
+    await refresh();
+    say('');
+  }
+
+  (async function boot() {
+    try {
+      var session = await (await fetch('/api/login', { credentials: 'same-origin' })).json();
+      if (session.authenticated) { await start(); } else { showGate(''); }
+    } catch (_) {
+      showGate('');
+    }
+  }());
+}());
+</script>
+</body>
+</html>

@@ -232,6 +232,41 @@ html.js .panel.is-active { display: block; }
   [data-panel="projects"] .entry:focus-within .entry-reveal { opacity: 1; }
 }
 
+/* Blog — the index list and a post page. A post page carries this same stylesheet,
+   lifted verbatim out of blog.html when it is published (api/_lib/render.js), which is
+   how a file nobody hand-writes stays inside `stylesheets-identical`.
+   Nothing here is new decoration. The index list reuses the .entry classes Work and
+   Projects already share, and a post body is the About panel's 24px rhythm applied to
+   prose. Quotations and code are set off by indent alone: PRD section 9 permits exactly
+   one declared font family and no borders-as-styling, so a monospace stack and a rule down
+   the side of a blockquote are both out. <code> and <pre> therefore declare a size from
+   the site's own three and leave the face to the browser's default for those elements —
+   that is the plain behaviour of plain HTML, not a second stack this sheet chose. */
+.posts > * + * { margin-top: 56px; }
+.post-title { font-size: var(--t-lead); font-weight: 600; margin: 0; line-height: 1.35; }
+.post-meta { color: var(--grey); font-size: var(--t-meta); margin: 2px 0 0; }
+.post-body { margin-top: 40px; }
+/* The rhythm is set once, on the block's children, and the element rules below deliberately
+   declare no margin of their own. Setting `margin: 0` on `h2`, `blockquote`, and `pre`
+   individually is the obvious way to write this and it is wrong: `.post-body h2` outranks
+   `.post-body > * + *`, so every heading and quotation collapsed flush against the
+   paragraph above it. A heading takes more air than a paragraph, and that is the one
+   deliberate exception. */
+.post-body > * { margin: 0; }
+.post-body > * + * { margin-top: 24px; }
+.post-body > * + h2 { margin-top: 40px; }
+.post-body h2 { font-size: var(--t-lead); font-weight: 600; line-height: 1.35; }
+.post-body h3 { font-size: var(--t-body); font-weight: 600; }
+.post-body ul, .post-body ol { padding: 0 0 0 20px; }
+/* Indented further than a list, so a quotation does not read as one more bullet. Depth is
+   the whole treatment: section 9 forbids borders-as-styling, so the rule down the left that
+   a blockquote usually gets is out, and so is a second colour. */
+.post-body blockquote { padding-left: 32px; }
+.post-body blockquote > * + * { margin-top: 24px; }
+.post-body pre { padding: 0 0 0 20px; overflow-x: auto; font-size: var(--t-meta); }
+.post-body code { font-size: var(--t-meta); }
+.post-back { margin-top: 56px; font-size: var(--t-meta); }
+
 /* Journey */
 .era { }
 .era + .era { margin-top: 96px; }

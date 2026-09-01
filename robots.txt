@@ -1,6 +1,11 @@
 # journey.html is deliberately NOT disallowed here. A disallowed page is never fetched, so
 # its `noindex` meta tag is never read, and the bare URL can still be indexed from inbound
 # links. Leaving it crawlable is what makes the exclusion hold (PRD section 8).
+#
+# The same reasoning covers every other page on this site that carries `noindex`: none of
+# them are named here either. A `Disallow` line would be worse than useless for them — it
+# would suppress the fetch that reads the tag while publishing the path to anyone who
+# opens this file, which is a list every crawler and scraper already reads.
 
 User-agent: *
 Allow: /
