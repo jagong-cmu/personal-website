@@ -1,5 +1,14 @@
 # Repo docs are not part of the site. Without this, a zero-config static deploy would
 # serve PRD.md, README.md, and AGENTS.md at /PRD.md etc. on the deploy URL.
-# Narrow this if repo content ever lands as .md — .vercelignore also withholds files
-# from the build upload, so a matched content file would be missing at build time.
+#
+# Blog content DOES land as .md, and this pattern is what keeps it private — do not narrow
+# it. A post's Markdown source lives at drafts/<slug>.md while it is unpublished and at
+# blog/<slug>.md once it is out, and neither is ever meant to be fetched: the public
+# artefact is the generated blog/<slug>.html beside it. `*.md` matches at any depth, so it
+# withholds all of them from the deployment upload, which is the whole mechanism by which
+# an unpublished draft is unreachable rather than merely unlinked.
+#
+# This is safe here only because nothing builds: the functions in api/ read and write
+# content through the GitHub API, never the deployed filesystem, so a file withheld from
+# the upload is a file they never wanted. See AGENTS.md and PRD.md section 7.1.
 *.md

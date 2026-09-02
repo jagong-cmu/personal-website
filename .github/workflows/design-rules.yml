@@ -1,7 +1,8 @@
 name: Design rules
 
 # The site is plain, white, and self-contained by design. These constraints are easy to
-# erode one edit at a time, so they are checked on every push and pull request.
+# erode one edit at a time, so they are checked on every push and pull request, along with
+# the `api/` functions that generate the pages the rules then have to hold for.
 
 on:
   push:
@@ -19,3 +20,8 @@ jobs:
 
       - name: Test design rules
         run: python3 .github/scripts/test-design-rules.py
+
+      # The admin's own functions. Node is preinstalled on the runner and the tests use the
+      # standard library only, so this needs no setup step and no `package.json`.
+      - name: Test the api/ functions
+        run: node .github/scripts/test-api.js

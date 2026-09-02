@@ -17,7 +17,39 @@ import os
 import re
 import sys
 
-PAGES = ["index.html", "journey.html", "blog.html"]
+# The three hand-written pages. Named rather than discovered so that a rename or a
+# deletion fails loudly instead of quietly shrinking what is checked.
+REQUIRED_PAGES = ["index.html", "journey.html", "blog.html"]
+
+# Directories whose HTML is not part of the public site. Exactly one entry: `/admin` is
+# private and authenticated, and PRD.md section 7.1 already grants it — section 9 "governs
+# the public site's appearance, not a tool only the owner ever sees". The exemption is
+# written here by name so the admin is EXCLUDED on purpose rather than merely uncovered.
+EXEMPT_DIRS = frozenset({"admin", "api", "drafts"})
+
+# Directories skipped wholesale: not content.
+SKIPPED_DIRS = frozenset({".git", ".github", "node_modules", ".vercel", ".gstack"})
+
+# Where a published blog post lands. `api/publish.js` generates these pages; nobody writes
+# one by hand, which is exactly why they are checked — a generator that drifts from the
+# site's style should fail CI on the first post, not go unnoticed for a year.
+BLOG_DIR = "blog"
+
+
+def discover_pages(root):
+    """Every public HTML page in the repository, repo-relative, sorted.
+
+    Discovered rather than listed so that a post published next year is checked without
+    anyone remembering to add it."""
+    found = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(
+            d for d in dirnames if d not in SKIPPED_DIRS and d not in EXEMPT_DIRS)
+        for name in sorted(filenames):
+            if not name.endswith(".html"):
+                continue
+            found.append(os.path.relpath(os.path.join(dirpath, name), root))
+    return sorted(found)
 
 # Absolute URLs a page is allowed to LINK to. These are navigation targets the visitor
 # chooses to follow, not resources the page fetches while loading.
@@ -131,6 +163,28 @@ def styles_of(text):
     return [strip_comments(m.group(1)) for m in re.finditer(r"<style[^>]*>(.*?)</style>", text, re.S)]
 
 
+def css_lines_of(text):
+    """(line number, CSS) for every line of actual CSS on a page: the contents of each
+    <style> block, plus the value of each inline `style=` attribute.
+
+    The rules that scan for declarations use this rather than the raw page, because a page's
+    prose is not CSS. A post's body is the owner's writing and its rendered code blocks, so
+    a post that merely mentions `transition:` or shows a `box-shadow` in a fenced example
+    would otherwise fail a rule it does not break — and it would fail after the publish
+    commit had already landed and deployed, with nothing to fix. Inline `style=` is real CSS
+    wherever it appears and stays covered; `blog.html` sets the `.note` margin with one.
+
+    Comments are stripped a line at a time so the numbers still point at the source line."""
+    found = []
+    for m in re.finditer(r"<style[^>]*>(.*?)</style>", text, re.S):
+        first = line_of(text, m.start(1))
+        for offset, line in enumerate(m.group(1).splitlines()):
+            found.append((first + offset, strip_comments(line)))
+    for m in re.finditer(r"""(?<![\w-])style\s*=\s*["']([^"']*)["']""", text, re.I):
+        found.append((line_of(text, m.start()), strip_comments(m.group(1))))
+    return found
+
+
 def css_blocks(css):
     """(selector, body) for each top-level rule. Good enough for a hand-written sheet."""
     return [(m.group(1).strip(), m.group(2)) for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css)]
@@ -167,7 +221,14 @@ def check_link_element(path, n, tag):
              f"fetch off this site. Anything else does.\n    {tag.strip()}")
 
 
-def check_external_requests(path, text):
+def check_external_requests(path, text, curated_links=True):
+    """`curated_links` is the destination allowlist, and it binds the hand-written pages
+    only. It exists because of PRD decision 30: an agent editing this site must not invent
+    a URL for a company it cannot verify, so every absolute link on those pages is one the
+    owner confirmed by name. A blog post's outbound links are typed by the owner in the
+    editor, so they are confirmed by construction and the list would be a false gate on
+    them. Everything else in this rule — the fetch half, which is what "zero external
+    requests" actually protects — applies to a post page exactly as it does to the rest."""
     for n, line in lines_of(text):
         for m in re.finditer(r"<link\b[^>]*>", line, re.I):
             check_link_element(path, n, m.group(0))
@@ -194,8 +255,15 @@ def check_external_requests(path, text):
         # Links the visitor follows: allowed, but only to the owner's own destinations.
         for m in re.finditer(r"""\bhref\s*=\s*["']([^"']+)["']""", line, re.I):
             url = m.group(1).strip()
+            # A scheme no reader can follow has no business in an href, on any page.
+            # `api/_lib/markdown.js` already refuses to emit one from post source; this is
+            # the same rule asserted on the file that actually shipped.
+            if re.match(r"^\s*(?:javascript|data|vbscript)\s*:", url, re.I):
+                fail("zero-external-requests", path, n,
+                     f"href uses a scheme that is not a navigation target: {url}")
+                continue
             if url.startswith(("http://", "https://", "//", "mailto:")):
-                if not is_allowed_link(url):
+                if curated_links and not is_allowed_link(url):
                     fail("zero-external-requests", path, n,
                          f"Absolute link to an unapproved destination: {url}\n"
                          f"    Allowed: {', '.join(ALLOWED_LINK_PREFIXES)}")
@@ -211,7 +279,7 @@ def check_white_background(path, text):
              "No `background: #FFFFFF` declaration found. The page background is pure white, "
              "not cream, sand, off-white, or grey.")
 
-    for n, line in lines_of(text):
+    for n, line in css_lines_of(text):
         if re.search(r"prefers-color-scheme", line, re.I):
             fail("pure-white", path, n,
                  "prefers-color-scheme block found. The site is white; there is no dark mode.")
@@ -221,7 +289,7 @@ def check_white_background(path, text):
 # Rule 3 — one system font family
 # --------------------------------------------------------------------------------------
 def check_font_family(path, text):
-    for n, line in lines_of(text):
+    for n, line in css_lines_of(text):
         if re.search(r"@font-face", line, re.I):
             fail("system-font-only", path, n, "@font-face loads a custom font. The stack is system fonts only.")
         if re.search(r"fonts\.googleapis\.com|fonts\.gstatic\.com|use\.typekit|fonts\.bunny\.net", line, re.I):
@@ -264,8 +332,7 @@ def check_font_sizes(path, text):
 # Rule 5 — no decoration
 # --------------------------------------------------------------------------------------
 def check_no_decoration(path, text):
-    for n, line in lines_of(text):
-        stripped = strip_comments(line)
+    for n, stripped in css_lines_of(text):
         if re.search(r"box-shadow\s*:\s*(?!none)", stripped, re.I):
             fail("no-decoration", path, n, "box-shadow is not permitted.")
         if re.search(r"text-shadow\s*:\s*(?!none)", stripped, re.I):
@@ -347,6 +414,11 @@ def check_no_phone(path, text):
 # Rule 8 — internal links resolve
 # --------------------------------------------------------------------------------------
 def check_internal_links(path, text, root):
+    """A relative URL resolves from the page's OWN directory, not from the repository root.
+    A post page at `blog/<slug>.html` reaches the headshot as `../headshot.jpg`, and a rule
+    that resolved everything against the root would call that broken and the genuinely
+    broken `headshot.jpg` fine."""
+    base = os.path.dirname(os.path.join(root, path))
     for n, line in lines_of(text):
         for attr in ("href", "src"):
             for m in re.finditer(rf"""\b{attr}\s*=\s*["']([^"']+)["']""", line, re.I):
@@ -356,9 +428,12 @@ def check_internal_links(path, text, root):
                 target = url.split("#", 1)[0].split("?", 1)[0]
                 if not target:
                     continue
-                if not os.path.isfile(os.path.join(root, target)):
+                resolved = os.path.normpath(
+                    os.path.join(root if target.startswith("/") else base, target.lstrip("/")))
+                if not os.path.isfile(resolved):
                     fail("internal-links-resolve", path, n,
-                         f"{attr}=\"{url}\" points at {target}, which does not exist in the repository.")
+                         f"{attr}=\"{url}\" points at {os.path.relpath(resolved, root)}, "
+                         f"which does not exist in the repository.")
 
 
 # --------------------------------------------------------------------------------------
@@ -498,7 +573,12 @@ def check_image_metadata(root):
 # --------------------------------------------------------------------------------------
 # Each page carries its own copy of the whole sheet, which AGENTS.md accepts for the static
 # preview. Nothing detected drift: the rules above validate each page independently, so all
-# three could diverge and still pass. A style change is a three-way edit; this says so.
+# of them could diverge and still pass. A style change is a three-way edit; this says so.
+#
+# It covers generated post pages too, and that is the point of the whole arrangement.
+# `api/_lib/render.js` does not carry its own copy of the stylesheet — it lifts the sheet
+# out of `blog.html` at publish time — so a post is byte-identical by construction and this
+# rule is what proves the construction still holds.
 def check_stylesheets_identical(pages):
     sheets = {}
     for path, text in pages.items():
@@ -522,24 +602,138 @@ def check_stylesheets_identical(pages):
          f"The inline stylesheets have drifted into {len(groups)} versions:\n"
          f"    {described}\n"
          "    Every page carries a byte-identical copy of the whole sheet, so a CSS change "
-         "is a three-way edit. Whichever version was edited last, all three must end up "
-         "the same.")
+         "to the hand-written pages is a three-way edit. Whichever version was edited last, "
+         "all of them must end up the same.\n"
+         "    A page under blog/ is generated: it takes its sheet from blog.html when it is "
+         "published, so if one has drifted, re-save that post from /admin rather than "
+         "editing the file.")
+
+
+# --------------------------------------------------------------------------------------
+# Rule 11 — the admin is exempt from the rules above, and kept out of search
+# --------------------------------------------------------------------------------------
+# `admin/` is excluded from every rule above by EXEMPT_DIRS, which is the grant PRD.md
+# section 7.1 makes. An exemption that nothing checks is indistinguishable from an
+# oversight, so what is left of the admin's obligations is asserted here: it is excluded
+# from search the way `journey.html` is, by a `noindex` tag on a page that stays crawlable,
+# rather than by a `robots.txt` disallow that would stop the tag ever being read.
+def check_admin(root, pages):
+    admin = os.path.join(root, "admin", "index.html")
+    if not os.path.isdir(os.path.join(root, "admin")):
+        return
+    if not os.path.isfile(admin):
+        fail("admin-excluded", "admin/index.html", None,
+             "The admin/ directory exists but carries no index.html, so /admin serves "
+             "nothing. Either the page or the directory should go.")
+        return
+    with open(admin, encoding="utf-8") as handle:
+        text = handle.read()
+    if not re.search(r"""<meta[^>]*name\s*=\s*["']robots["'][^>]*content\s*=\s*["'][^"']*noindex[^"']*nofollow""",
+                     text, re.I):
+        fail("admin-excluded", "admin/index.html", None,
+             'Missing <meta name="robots" content="noindex, nofollow">. The admin is the '
+             "one page on this site that must never be indexed, and the tag is the whole "
+             "mechanism — robots.txt deliberately disallows nothing (PRD decision 38).")
+
+    sitemap = os.path.join(root, "sitemap.xml")
+    if os.path.isfile(sitemap):
+        with open(sitemap, encoding="utf-8") as handle:
+            xml = handle.read()
+        # A <loc>, not any mention of the word: the file's own comments describe how the
+        # post block is maintained and must not trip a rule about what is listed.
+        for m in re.finditer(r"<loc>([^<]*)</loc>", xml, re.I):
+            if re.search(r"/admin\b", m.group(1), re.I):
+                fail("admin-excluded", "sitemap.xml", line_of(xml, m.start()),
+                     f"sitemap.xml lists {m.group(1).strip()}. The admin is private; it "
+                     f"belongs in no index.")
+
+    for path, page in pages.items():
+        for n, line in lines_of(page):
+            if re.search(r"""href\s*=\s*["'][^"']*/?admin/?["']""", line, re.I):
+                fail("admin-excluded", path, n,
+                     "A public page links to /admin. Nothing on the public site points at "
+                     "it: an unlinked page is one a crawler has no path to.")
+
+
+# --------------------------------------------------------------------------------------
+# Rule 12 — a draft is never a servable file
+# --------------------------------------------------------------------------------------
+# Drafts are kept out of the deployment by `.vercelignore`'s `*.md`, which withholds them
+# from the upload entirely. That protection is keyed on the extension and nothing else, so
+# a single non-`.md` file landing in `drafts/` would be served to anyone who guessed the
+# URL. A silently public draft is the worst outcome this system can produce, so the
+# invariant the exclusion depends on is asserted rather than assumed.
+def check_drafts(root):
+    drafts = os.path.join(root, "drafts")
+    if not os.path.isdir(drafts):
+        return
+    for dirpath, dirnames, filenames in os.walk(drafts):
+        dirnames[:] = [d for d in dirnames if d != ".git"]
+        for name in sorted(filenames):
+            if name == ".gitkeep" or name.endswith(".md"):
+                continue
+            rel = os.path.relpath(os.path.join(dirpath, name), root)
+            fail("drafts-not-servable", rel, None,
+                 "A file under drafts/ that is not Markdown. `.vercelignore` withholds "
+                 "drafts from the deployment by matching `*.md` and nothing else, so this "
+                 "file would be served publicly at its own URL.")
+
+
+# --------------------------------------------------------------------------------------
+# Rule 13 — a published post is listed everywhere a published post is listed
+# --------------------------------------------------------------------------------------
+# Publishing writes the post page, `blog.html`, and `sitemap.xml` in ONE commit precisely
+# so these three can never disagree (PRD section 6). This is the assertion that says so: a
+# page nothing links to, or an index entry with no page behind it, means a publish went in
+# half-applied and should fail the build rather than ship.
+def check_posts_listed(root, pages):
+    blog_dir = os.path.join(root, BLOG_DIR)
+    if not os.path.isdir(blog_dir):
+        return
+    slugs = sorted(name[:-5] for name in os.listdir(blog_dir) if name.endswith(".html"))
+
+    index = pages.get("blog.html", "")
+    sitemap_path = os.path.join(root, "sitemap.xml")
+    sitemap = ""
+    if os.path.isfile(sitemap_path):
+        with open(sitemap_path, encoding="utf-8") as handle:
+            sitemap = handle.read()
+
+    for slug in slugs:
+        if f'href="{BLOG_DIR}/{slug}.html"' not in index:
+            fail("posts-listed", f"{BLOG_DIR}/{slug}.html", None,
+                 "This post page exists but blog.html does not link to it. Publishing "
+                 "writes both in one commit; re-save the post from /admin.")
+        if f"{SITE_ORIGIN}/{BLOG_DIR}/{slug}.html" not in sitemap:
+            fail("posts-listed", f"{BLOG_DIR}/{slug}.html", None,
+                 "This post page exists but sitemap.xml does not name it.")
+
+    for m in re.finditer(rf"<loc>\s*{re.escape(SITE_ORIGIN)}/{BLOG_DIR}/([^<\s]+)\.html\s*</loc>", sitemap):
+        if m.group(1) not in slugs:
+            fail("posts-listed", "sitemap.xml", line_of(sitemap, m.start()),
+                 f"sitemap.xml names {BLOG_DIR}/{m.group(1)}.html, which is not in the "
+                 f"repository. An unpublish or a delete left an entry behind.")
 
 
 def main():
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    pages = {}
-    for name in PAGES:
-        full = os.path.join(root, name)
-        if not os.path.isfile(full):
+    discovered = discover_pages(root)
+    for name in REQUIRED_PAGES:
+        if name not in discovered:
             fail("pages-present", name, None, "Expected page is missing from the repository root.")
-            continue
-        with open(full, encoding="utf-8") as handle:
+
+    pages = {}
+    for name in discovered:
+        with open(os.path.join(root, name), encoding="utf-8") as handle:
             pages[name] = handle.read()
 
     for path, text in pages.items():
-        check_external_requests(path, text)
+        # The destination allowlist governs the hand-written pages, where a URL is only ever
+        # there because the owner confirmed it. A post's links are typed by the owner in the
+        # editor, so `blog/` opts out of that one half — and only that half.
+        curated = os.path.dirname(path) != BLOG_DIR
+        check_external_requests(path, text, curated_links=curated)
         check_white_background(path, text)
         check_font_family(path, text)
         check_font_sizes(path, text)
@@ -549,6 +743,9 @@ def main():
 
     check_robots(pages)
     check_stylesheets_identical(pages)
+    check_admin(root, pages)
+    check_drafts(root)
+    check_posts_listed(root, pages)
     images = check_image_metadata(root)
 
     if failures:
@@ -561,8 +758,10 @@ def main():
               "genuinely needs to change, change it\nthere first.")
         return 1
 
-    print(f"Design rules: all checks passed across {len(pages)} pages "
-          f"and {images} image(s); the three inline stylesheets are identical.")
+    posts = sum(1 for path in pages if os.path.dirname(path) == BLOG_DIR)
+    print(f"Design rules: all checks passed across {len(pages)} public page(s) "
+          f"({posts} of them published post(s)) and {images} image(s); "
+          f"every inline stylesheet is identical.")
     return 0
 
 

@@ -4,23 +4,92 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Add durable project-specific notes here as they are discovered through real work.
 
-## Current stage: static preview at the repo root
+## The stack: hand-written static HTML plus `api/` functions
 
 `index.html`, `journey.html`, `blog.html`, `headshot.jpg`, `journey/`, `logos/`, `projects/`,
-the root icons, and `robots.txt` / `sitemap.xml` at the repo root are an owner-approved static
-preview, **live in production on `jonathangong.com`** via Vercel zero-config. They are
-intentionally hand-written, self-contained (inline `<style>`, inline `<script>`, inline
-SVG), and have **no build step, no framework, no package.json, and no dependencies**. Do
-not add any. They will be deleted and replaced by the Next.js app in `PRD.md`, which is
-the source of truth for the eventual architecture — never infer the stack from these files.
+the root icons, and `robots.txt` / `sitemap.xml` at the repo root are the site, **live in
+production on `jonathangong.com`** via Vercel zero-config. They are intentionally
+hand-written, self-contained (inline `<style>`, inline `<script>`, inline SVG), and have
+**no build step, no framework, no package.json, and no dependencies**. Do not add any —
+a `package.json` in particular risks Vercel re-detecting the project as a framework build.
 
-Each page duplicates the whole stylesheet and masthead, so any header or style change is a
-three-way edit. That duplication is accepted for the preview and goes away in the Next.js
-build; CI's `stylesheets-identical` rule fails if the three inline stylesheets drift apart.
+**This file and `README.md` used to call these pages a temporary preview that would be
+deleted and replaced by a Next.js app. The owner rejected that on 2026-09-01** (`PRD.md`
+decisions 58 and 59, which rewrote §6, §7.1 and §7.4 around it). There is no replacement
+pending, and "it would be easier in a framework" is the exact argument that was overruled.
+
+Each page duplicates the whole stylesheet and masthead, so any header or style change is an
+N-way edit across every hand-written page. CI's `stylesheets-identical` rule fails if they
+drift apart. A generated post page under `blog/` is in that set too but is never edited by
+hand: `api/_lib/render.js` lifts the stylesheet and masthead out of `blog.html` at publish
+time rather than keeping a copy, so a post is identical by construction — after a CSS change,
+re-save each published post from `/admin` to regenerate it.
 The mastheads legitimately differ — `index.html` does not wrap its own name in a self-link —
 so they are not checked. The per-page `<head>` blocks differ on purpose too: every
 description is distinct, and `journey.html` deliberately carries no canonical, Open Graph,
 or structured data (`PRD.md` decision 38). Do not make the three heads uniform.
+
+## The blog admin (`/admin`, `api/`)
+
+Built 2026-09-01 on the static stack. `README.md` has the file map; `PRD.md` §6 and §7.1 have
+the specification and decisions 58–62 the reasoning. The things that are not obvious from
+reading the code:
+
+**Three secrets, environment-only.** `ADMIN_PASSWORD`, `SESSION_SECRET`, `GITHUB_TOKEN` are
+set in Vercel and must never appear in a committed file, in client-side JavaScript, or in a
+response body. Never add a fallback default for one: a gate that works without its password
+is worse than one that fails.
+
+**All content I/O goes through the GitHub API, never the deployed filesystem** — `*.md` is
+withheld from the deployment upload, and a just-committed file is not in the running
+deployment anyway. `fs` has no place in `api/`.
+
+**A post's state is its location**: `drafts/<slug>.md` unpublished, `blog/<slug>.md` +
+`blog/<slug>.html` published. `.vercelignore`'s `*.md` is the *entire* reason a draft is
+unreachable rather than merely unlinked, and it keys on the extension alone — a single
+non-`.md` file in `drafts/` would be publicly served. CI's `drafts-not-servable` rule guards
+that; do not narrow the pattern.
+
+**Every write is one commit** via the Git Data API (`api/_lib/github.js`), because a
+half-applied publish leaves a page listed with nothing behind it. The Contents API cannot do
+this — it commits per file. A tree entry with a null sha deletes a path, and GitHub rejects
+one for a path that is not in the base tree, so a change set is built from what
+`posts.locate()` reports is actually there — never from an assumption that a draft exists.
+A stub backed by git plumbing is more permissive here than the real endpoint: it takes a
+create-tree entry with `sha: null` for a path absent from `base_tree`, where GitHub answers
+422. Passing against a stub is therefore not evidence that a tree operation works — exercise
+those against a preview deployment. `.github/scripts/test-api.js` refuses the absent delete
+the way GitHub does, so keep that behaviour if the stub is extended.
+
+**A slug is claimed, not overwritten.** `content.js`'s `claimSlug()` refuses with a 409 when
+the caller is creating a post and the slug already holds one, in `drafts/` or `blog/`. The
+server cannot tell a second post from a re-save of the first by looking at the repository,
+so the editor says which it is doing — `create: true` while the slug field is still unfrozen
+— and an edit keeps working exactly as before. Losing a post to a title coincidence is
+recoverable only from git history, which is why this rejects rather than merges.
+
+**The slug is the only untrusted input that reaches a path.** It is validated once, in
+`api/_lib/posts.js`; every write path is built from it there. Nothing accepts a path from the
+browser.
+
+**Markdown is escaped, never passed through** (`api/_lib/markdown.js`). The public pages
+carry no author-supplied scripts and CI enforces it; the editor must not become the hole in
+that. It is deliberately narrow — do not grow it into a general Markdown engine. A post page
+carries one `<script>` all the same, its JSON-LD block, and that is the one place a post's
+own words reach the output without `escapeHtml`: they go through `render.js`'s
+`jsonForScript()` instead, because an HTML parser ends a `<script>` at the first `</script`
+whatever the JSON quoting around it. Valid JSON is not the same thing as safe in a script
+element; `.github/scripts/test-api.js` pins both.
+
+**`admin/` is exempt from the public design rules**, by name in `check-design-rules.py`'s
+`EXEMPT_DIRS` and pinned by its tests — `PRD.md` §7.1 grants it. Post pages under `blog/`
+are *not* exempt; they are public and fully checked. The one half that does not bind them is
+the outbound-link allowlist (decision 61).
+
+**`/admin` is kept out of search by its `noindex` tag alone.** It is named in neither
+`robots.txt` nor `sitemap.xml`, and nothing links to it — a `Disallow` would suppress the
+fetch that reads the tag while publishing the path in a file every crawler reads. That is the
+same reasoning `robots.txt` already gives for `journey.html`.
 
 ## Binding visual constraints
 
@@ -99,22 +168,23 @@ too. Every card rule is scoped to `[data-panel="projects"]` the way the Work gri
 is scoped to `[data-panel="work"]`, and for the same reason: verify both panels after touching
 either.
 
-Three further prohibitions bind this preview as owner decisions rather than §9 text, so do not
+Three further prohibitions bind this site as owner decisions rather than §9 text, so do not
 expect to find them there: **zero external requests** (no web fonts, no CDN, no external
 CSS/JS — a `<link>` is permitted only for a same-origin canonical or icon, decision 37),
 no phone number anywhere, and **no committed image may carry embedded
 metadata** — GPS and EXIF are stripped before an image lands, non-optionally, because this
 repository is public and an unstripped commit publishes the owner's locations permanently into
 git history (`PRD.md` §7.3, §8, decision 33).
-CI's `no-image-metadata` rule fails the build on anything that still carries it, and for the
-static preview the strip is a manual step, done with exactly this command:
+CI's `no-image-metadata` rule fails the build on anything that still carries it, and the strip
+is a manual step, done with exactly this command:
 `magick <in> -auto-orient -strip -resize '1600x1600>' -quality 82 <out>`.
 `-auto-orient` must come before `-strip`, because stripping removes the EXIF orientation tag
 and a plain `-strip` therefore leaves a phone photo rotated on the page.
 That invocation produced the seven `journey/` photographs, so it is recorded history rather
 than a suggestion: do not substitute another tool, add flags, or reorder it.
-It is the preview-era procedure only, and `PRD.md` §7.3 owns the eventual build-time `sharp`
-pipeline that subsumes it once the Next.js application lands.
+It is the procedure, not a stopgap: `PRD.md` §7.3's `sharp` pipeline presumed a build step
+that decision 58 removed, and its variant steps are now suspended by owner decision rather
+than pending (decision 66), so nothing is coming to subsume it.
 The root icons are the one image pair it does not describe — `favicon.ico` (16/32/48) and
 `apple-touch-icon.png` (180x180) are cropped from `headshot.jpg` tighter than the on-page
 circle, because a head-and-shoulders photo is unreadable at 16px. They were produced with
@@ -153,14 +223,33 @@ Most of these are enforced in CI by `.github/scripts/check-design-rules.py`, whi
 every push and pull request. Run it locally before pushing a visual change; a failure names
 the rule and where it fired. It is a guard, not the specification — `PRD.md` §9 is.
 `.github/scripts/test-design-rules.py` runs beside it in the same job and pins the parts of
-the checker that are easy to loosen by accident — chiefly which `<link>` elements
-`zero-external-requests` permits (`PRD.md` decision 37). Run both.
+the checker that are easy to loosen by accident — which `<link>` elements
+`zero-external-requests` permits (`PRD.md` decision 37), which selectors may carry a
+`border-radius` (decision 49), and, since the checker started *discovering* public pages
+rather than listing three, that post pages fall inside the walk and `admin/` falls outside
+it. The rules that scan for declarations read `css_lines_of()` — `<style>` contents and
+inline `style=` values — and not the raw page, because a post's body is prose and rendered
+code blocks and a post *about* `transition:` breaks nothing; widening them back to the whole
+page would fail CI on a live post after the publish commit had landed. `node
+.github/scripts/test-api.js` is the third check in the same job and covers the `api/`
+functions against a stub GitHub API. Run all three.
 
 Outbound links are allowlisted by destination in that script (`ALLOWED_LINK_PREFIXES`), so
-any new absolute `href` fails CI until it is added. The gate is deliberate: a destination
-goes on the list only once the owner has confirmed it, and the confirmation is recorded in
-the `PRD.md` decision log. Never add a guessed URL to clear the check — leaving the text
-unlinked is the correct outcome for an unconfirmed destination.
+any new absolute `href` on a hand-written page fails CI until it is added. The gate is
+deliberate: a destination goes on the list only once the owner has confirmed it, and the
+confirmation is recorded in the `PRD.md` decision log. Never add a guessed URL to clear the
+check — leaving the text unlinked is the correct outcome for an unconfirmed destination.
+The allowlist does **not** apply to a post under `blog/` (decision 61): a post's links are
+typed by the owner in the editor, so they are confirmed by construction and the list would be
+a false gate. Every other part of `zero-external-requests` binds a post page exactly as it
+binds the front door — do not read the one exemption as a general one.
+
+Post prose adds two live trade-offs that look like oversights and are not (decision 62).
+`<code>` and `<pre>` declare a size from the site's own three and **no `font-family`**: §9
+says "One family" and the checker fails a second declaration, so the face is left to the
+browser's default for those elements. A blockquote is set off by **indent alone**, deeper
+than a list, because §9 forbids borders-as-styling and a second text colour. Both are the
+owner's to revisit; neither is yours to "fix".
 
 ## Maintaining this file
 
