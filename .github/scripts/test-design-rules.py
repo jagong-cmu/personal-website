@@ -366,6 +366,13 @@ class SiteFixture(unittest.TestCase):
             handle.write(text)
         return full
 
+    def write_bytes(self, rel, data):
+        full = os.path.join(self.root, rel)
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "wb") as handle:
+            handle.write(data)
+        return full
+
     def page(self, body=""):
         return self.PAGE.replace("{body}", body)
 
@@ -425,6 +432,83 @@ class PostPagePathsTest(SiteFixture):
     def test_a_missing_target_still_fails(self):
         rules.check_internal_links("blog/a-post.html", '<a href="../nowhere.html">x</a>\n', self.root)
         self.assertTrue(rules.failures)
+
+
+def build_jpeg(dirty=False):
+    """Minimal JPEG bytes: SOI, optionally one APP1 (EXIF) segment, EOI."""
+    body = b""
+    if dirty:
+        payload = b"Exif\x00\x00"
+        body = b"\xff\xe1" + (2 + len(payload)).to_bytes(2, "big") + payload
+    return b"\xff\xd8" + body + b"\xff\xd9"
+
+
+def png_chunk(kind, data=b""):
+    return len(data).to_bytes(4, "big") + kind + data + b"\x00\x00\x00\x00"
+
+
+def build_png(dirty=False):
+    """Minimal PNG bytes: signature, IHDR, optionally one tEXt chunk, IEND."""
+    chunks = png_chunk(b"IHDR", b"\x00" * 13)
+    if dirty:
+        chunks += png_chunk(b"tEXt", b"GPS\x00somewhere")
+    chunks += png_chunk(b"IEND")
+    return rules.PNG_SIGNATURE + chunks
+
+
+class ImageMetadataTest(SiteFixture):
+    """Discovery is now by content, not extension (the twice-accepted gap this closes):
+    a real JPEG/PNG must be caught under any filename, an ICO embedding a PNG frame must be
+    caught too, and a file that merely fails to match a suffix must not become a false
+    positive now that the suffix gate is gone."""
+
+    def failures_for_file(self, rel, data):
+        rules.failures.clear()
+        self.write_bytes(rel, data)
+        rules.check_image_metadata(self.root)
+        return list(rules.failures)
+
+    def test_clean_jpeg_and_png_still_pass_by_extension(self):
+        self.assertEqual([], self.failures_for_file("a.jpg", build_jpeg(dirty=False)))
+        self.assertEqual([], self.failures_for_file("b.png", build_png(dirty=False)))
+
+    def test_dirty_jpeg_and_png_still_fail_by_extension(self):
+        self.assertTrue(self.failures_for_file("a.jpg", build_jpeg(dirty=True)))
+        self.assertTrue(self.failures_for_file("b.png", build_png(dirty=True)))
+
+    def test_real_jpeg_renamed_to_an_unlisted_extension_is_caught(self):
+        # The concrete gap: a raster committed under an extension outside IMAGE_SUFFIXES
+        # used to never be opened at all.
+        self.assertTrue(self.failures_for_file("sneaky.webp", build_jpeg(dirty=True)))
+
+    def test_real_png_renamed_to_an_unlisted_extension_is_caught(self):
+        self.assertTrue(self.failures_for_file("sneaky.heic", build_png(dirty=True)))
+
+    def test_clean_image_under_an_unlisted_extension_still_passes(self):
+        self.assertEqual([], self.failures_for_file("fine.webp", build_jpeg(dirty=False)))
+
+    def test_non_image_files_are_not_false_positives(self):
+        rules.failures.clear()
+        self.write("script.py", "import os\nprint('hello')\n")
+        self.write("notes.md", "# Notes\n\nJust some text about photos and GPS.\n")
+        self.write_bytes("data.json", b'{"key": "value"}')
+        count = rules.check_image_metadata(self.root)
+        self.assertEqual(0, count)
+        self.assertEqual([], rules.failures)
+
+    def test_ico_with_embedded_clean_png_frame_passes(self):
+        ico = rules.ICO_SIGNATURE + b"\x00" * 12 + build_png(dirty=False)
+        self.assertEqual([], self.failures_for_file("favicon.ico", ico))
+
+    def test_ico_with_embedded_dirty_png_frame_fails(self):
+        ico = rules.ICO_SIGNATURE + b"\x00" * 12 + build_png(dirty=True)
+        self.assertTrue(self.failures_for_file("favicon.ico", ico))
+
+    def test_ico_with_no_embedded_png_signature_is_left_alone(self):
+        # A genuine BMP-encoded ICO frame — out of scope, see check_image_metadata's
+        # docstring for why. It must not be flagged just for having no PNG inside it.
+        bmp_style_ico = rules.ICO_SIGNATURE + b"\x28\x00\x00\x00" + b"\x00" * 20
+        self.assertEqual([], self.failures_for_file("favicon.ico", bmp_style_ico))
 
 
 class StylesheetsIdenticalTest(unittest.TestCase):

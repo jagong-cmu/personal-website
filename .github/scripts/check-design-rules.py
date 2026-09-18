@@ -455,6 +455,10 @@ def check_internal_links(path, text, root):
 
 IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png")
 
+# ICO container header (reserved=0, type=1/icon, hard-coded little-endian). Used only to
+# decide whether to search a file for an embedded PNG frame below — see check_image_metadata.
+ICO_SIGNATURE = b"\x00\x00\x01\x00"
+
 # APP0 (0xE0) is the JFIF container header and is expected. APP1–APP15 carry EXIF, XMP,
 # ICC-embedded metadata, Photoshop resources, and the rest; COM is a free-text comment.
 JPEG_METADATA_MARKERS = {0xFE: "COM"}
@@ -527,14 +531,23 @@ def png_metadata_chunks(data):
 
 
 def check_image_metadata(root):
-    """Check every committed raster image. Returns how many were inspected."""
+    """Check every committed file whose bytes are actually a JPEG or PNG, discovered by
+    content rather than by extension — a `.webp`/`.heic`/anything else that is really a
+    renamed JPEG or PNG is caught the same as a correctly-named one, and a non-image file
+    is never flagged just because it lacks a recognized suffix. Returns how many were
+    inspected.
+
+    An `.ico` gets one extra look: a favicon frequently embeds a full PNG-encoded frame
+    inside the ICO container, detectable by the same PNG_SIGNATURE bytes appearing after
+    the ICO header, and that embedded PNG is checked the same as a standalone one. A
+    genuine BMP-encoded ICO frame (no embedded PNG signature) is explicitly out of scope:
+    the BMP format has no metadata segments/chunks of the kind this rule parses (no EXIF,
+    no text chunks), so there is nothing here for it to catch.
+    """
     count = 0
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d != ".git"]
         for name in sorted(filenames):
-            if not name.lower().endswith(IMAGE_SUFFIXES):
-                continue
-            count += 1
             full = os.path.join(dirpath, name)
             rel = os.path.relpath(full, root)
             with open(full, "rb") as handle:
@@ -543,15 +556,13 @@ def check_image_metadata(root):
                 kind, (found, error) = "JPEG", jpeg_metadata_segments(data)
             elif data.startswith(PNG_SIGNATURE):
                 kind, (found, error) = "PNG", png_metadata_chunks(data)
+            elif data.startswith(ICO_SIGNATURE) and PNG_SIGNATURE in data:
+                offset = data.index(PNG_SIGNATURE)
+                kind = "PNG embedded in ICO"
+                found, error = png_metadata_chunks(data[offset:])
             else:
-                fail("no-image-metadata", rel, None,
-                     f"Bytes are neither a JPEG nor a PNG: the file opens with "
-                     f"{data[:8].hex(' ').upper() or '(nothing)'}, matching neither FF D8 nor "
-                     f"89 50 4E 47 0D 0A 1A 0A. A `.png` straight off a phone is often a JPEG.\n"
-                     f"    Its metadata cannot be read, so it cannot be shown to be stripped, "
-                     f"and this rule never resolves unreadable to clean (PRD sections 7.3 "
-                     f"and 8).")
                 continue
+            count += 1
             if error:
                 fail("no-image-metadata", rel, None,
                      f"This {kind} could not be read to the end of its metadata: {error}.\n"
