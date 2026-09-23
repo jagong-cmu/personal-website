@@ -1,0 +1,11 @@
+---
+title: "The Art of Doing Everything All At Once"
+date: "2026-09-22"
+summary: "Learning to consolidate your efforts"
+---
+
+As I'm writing this, I feel like I'm at a very introspective stage of my life. I spend a lot of time on things I care about and things I enjoy: the clubs I'm in, baseball, the time I spend with my friends, and everything in between. Yet it seems like the more I begin to branch out and distribute my concentration and efforts, the more overworked I am and the fewer benefits I reap. I realize now that consolidation is key, and that's what I'm hoping to focus on moving forward. I want to consolidate how I'm spending my time. Right now, everything is distributed across a multitude of commitments, and that's really hard. The art of doing everything all at once is impossible when you spread yourself out so thinly. 
+
+I think an important lesson to note here is being very intentional and careful with the opportunities you take and what you commit yourself to. Opportunities come knocking on our door fairly often. Maybe we get accepted into a club we applied to, get a job that we've always wanted, or joined a club for fun, or maybe not for fun. Regardless, before you take that chance, take that opportunity, consider the commitment that you're bringing yourself towards and whether it's worth it. Oftentimes it is. New opportunities are a great way to learn new things and meet new people, but the thing is that there are so many opportunities that we come across in our lives. It's often the case when we jump at the first ones that come knocking on our door instead of saying no to the unintentional solicitors and saying yes to those that actually are worth pursuing.
+
+I think what's even harder about this whole thing is that once you commit yourself to something, say yes to someone else, it's even harder to say no. That is, when you join a club, you take that job offer, and then you have to say no to other opportunities. You have to say no to other ones that come knocking on your door. The hardest part is trying to leave that opportunity for a chance for something better. That's the obstacle that I'm facing, yet I think only time will tell whether I'll make the right choice.

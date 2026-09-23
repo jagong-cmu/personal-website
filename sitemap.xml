@@ -12,4 +12,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
+  <!-- Blog posts, newest first. This block is rewritten whenever a post is
+       published, unpublished, or deleted; it is not maintained by hand. -->
+  <url>
+    <loc>https://jonathangong.com/blog/the-art-of-doing-everything-all-at-once.html</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
 </urlset>
