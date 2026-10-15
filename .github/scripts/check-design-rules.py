@@ -67,6 +67,7 @@ ALLOWED_LINK_PREFIXES = (
     # text rather than acquiring a guessed one.
     "https://www.youtube.com/watch?v=9Mp3-vZTWuM",
     "https://devpost.com/software/patientscope-ai",
+    "https://karaoke-arena.vercel.app",
     "mailto:",
 )
 
