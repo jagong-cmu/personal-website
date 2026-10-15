@@ -146,8 +146,8 @@ unscrimmed in the base rules, and only inside
 scrimmed, `opacity: 0` overlay. Gating on width alone was the bug: an iPad reports a wide
 viewport and no hover, so it got neither the overlay nor the text, and a hovering window in the
 561-660px band clipped the title off the top of a card whose height is locked to the image's
-12:5 ratio. The 768px floor is measured — PatientScope has the tallest overlay and only clears
-its own 28px top padding from 720px up — so re-measure PatientScope before lowering it. Those
+12:5 ratio. The 768px floor is measured — PatientScope and Aria tie for the tallest overlay (52px clear at
+768px, measured 2026-10-15) and PatientScope only clears its own 28px top padding from 720px up — so re-measure both before lowering it. Those
 three paths are load-bearing; a change that leaves the description reachable only by mouse is a
 regression.
 
@@ -159,11 +159,11 @@ one sentence each (decision 50); ManuAI's 1st-place hackathon line was kept thro
 purpose; the About paragraph no longer mentions it, so that entry is the award's only
 home in the front-door panels, and `journey.html` narrates the same win separately in
 its Summer 2026 era (decision 56). Cards are one per row (decision 51): three across
-was measured at about 234x97 per image and rejected as unreadable. All three images
-share one ratio and one pixel size on purpose — re-crop, never letterbox or stretch, if a
-fourth is added. Each `projects/` `<img>` carries `loading="lazy"` alongside its intrinsic
-`width`/`height` (decision 54): the three PNGs are 762KB together and `display: none` on the
-inactive panel does not stop a browser fetching them, so a fourth screenshot gets the attribute
+was measured at about 234x97 per image and rejected as unreadable. All five images
+share one ratio and one pixel size on purpose — re-crop, never letterbox or stretch, if
+another is added. Each `projects/` `<img>` carries `loading="lazy"` alongside its intrinsic
+`width`/`height` (decision 54): the PNGs are well over 1MB together and `display: none` on the
+inactive panel does not stop a browser fetching them, so every new screenshot gets the attribute
 too. Every card rule is scoped to `[data-panel="projects"]` the way the Work grid
 is scoped to `[data-panel="work"]`, and for the same reason: verify both panels after touching
 either.
